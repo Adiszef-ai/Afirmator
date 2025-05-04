@@ -81,7 +81,6 @@ Aplikacja domyślnie korzysta z następujących czcionek:
 - **Elegancki** - Lato-Italic.ttf
 - **Pogrubiony** - Lato-Bold.ttf
 - **Dekoracyjny** - Lato-Light.ttf
-- **Ręczny** - OpenSans-Regular.ttf
 
 ### Dodawanie własnych czcionek
 
@@ -189,13 +188,11 @@ afirmator/
 
 - Wprowadź swoje imię
 - Otrzymaj codzienną afirmację dostosowaną do Twojej osoby
-- Możliwość odsłuchania i pobrania afirmacji w formie audio
 
 ### Generator afirmacji
 
 - Wypełnij formularz z Twoimi preferencjami
 - Dostosuj styl, ton i długość afirmacji
-- Odsłuchaj lub pobierz audio z afirmacją
 
 ### Wizualny cytat
 
@@ -243,4 +240,5 @@ Ten projekt jest dostępny na licencji MIT. Zobacz plik `LICENSE` dla szczegół
 - OpenAI za API do generowania tekstu i mowy
 - Streamlit za framework do tworzenia aplikacji webowych
 - pixabay.com i uppbeat.io za darmowe pliki dźwiękowe
+- Google Fonts (https://fonts.google.com/) za darmowe pliki z czcionkami
 - Ikony od [Icons8](https://icons8.com/)
