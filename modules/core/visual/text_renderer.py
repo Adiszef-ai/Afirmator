@@ -29,14 +29,18 @@ def auto_adjust_font_size(text, font_style, max_font_size, max_width, max_height
     words = text.split()
     
     while font_size >= min_font_size:
-        font = load_system_font(FONT_STYLES.get(font_style, FONT_STYLES["Klasyczny"]), font_size)
+        font = load_system_font(FONT_STYLES.get(font_style, FONT_STYLES["Klasyczny"]), font_size, font_style)
+        
+        # Debug: sprawdź czy font się zmienił
+        # st.write(f"DEBUG: Ładuję font {font_style} o rozmiarze {font_size}")
+        
         lines = []
         current_line = []
         
         # Układanie słów w linie
         for word in words:
             test_line = ' '.join(current_line + [word])
-            width, _ = measure_text(test_line, font)
+            width, _ = measure_text(test_line, font, font_style)
             
             if width <= available_width:
                 current_line.append(word)
@@ -66,12 +70,12 @@ def auto_adjust_font_size(text, font_style, max_font_size, max_width, max_height
         font_size -= 2
     
     # Fallback dla minimalnego rozmiaru
-    font = load_system_font(FONT_STYLES.get(font_style, FONT_STYLES["Klasyczny"]), min_font_size)
-    lines = _fallback_text_layout(words, font, available_width, available_height, min_font_size)
+    font = load_system_font(FONT_STYLES.get(font_style, FONT_STYLES["Klasyczny"]), min_font_size, font_style)
+    lines = _fallback_text_layout(words, font, available_width, available_height, min_font_size, font_style)
     
     return font, min_font_size, lines
 
-def _fallback_text_layout(words, font, available_width, available_height, min_font_size):
+def _fallback_text_layout(words, font, available_width, available_height, min_font_size, font_style):
     """
     Ostateczny podział tekstu na linie przy minimalnej czcionce
     """
@@ -80,7 +84,7 @@ def _fallback_text_layout(words, font, available_width, available_height, min_fo
     
     for word in words:
         test_line = ' '.join(current_line + [word])
-        width, _ = measure_text(test_line, font)
+        width, _ = measure_text(test_line, font, font_style)
         
         if width <= available_width:
             current_line.append(word)
@@ -130,7 +134,7 @@ def add_text_to_image(image, text, font_size=60, text_color=(255, 255, 255), pos
         # Renderuj tekst
         _render_text_lines(draw, lines, font, adjusted_font_size, text_color, 
                           shadow_color, position, image.size, padding,
-                          custom_x_percent, custom_y_percent)
+                          custom_x_percent, custom_y_percent, font_style)
         
         # Połącz warstwy
         result = Image.alpha_composite(image, text_layer)
@@ -153,7 +157,7 @@ def _normalize_text(text):
     return text
 
 def _render_text_lines(draw, lines, font, font_size, text_color, shadow_color, 
-                      position, image_size, padding, custom_x_percent, custom_y_percent):
+                      position, image_size, padding, custom_x_percent, custom_y_percent, font_style="Klasyczny"):
     """
     Renderuje linie tekstu na obrazie
     """
@@ -177,7 +181,7 @@ def _render_text_lines(draw, lines, font, font_size, text_color, shadow_color,
     # Renderuj każdą linię
     y = start_y
     for line in lines:
-        width, _ = measure_text(line, font)
+        width, _ = measure_text(line, font, font_style)
         
         # Określ pozycję X
         if position == "custom":

@@ -7,6 +7,7 @@ from config.constants import DAILY_AFFIRMATION_TOPICS
 # AI services będą przekazywane jako parametr
 from ui.components import affirmation_card, spacer
 from config.utils import save_to_history
+from utils.session_state import StateManager
 
 def generate_daily_affirmation(ai_service, user_name):
     """
@@ -67,14 +68,14 @@ def display_daily_affirmation_section(ai_service):
     """, unsafe_allow_html=True)
     spacer("1.5rem")
     
-    # Inicjalizacja zmiennych stanu dla edycji
-    if 'editing' not in st.session_state:
-        st.session_state.editing = False
-    if 'edited_affirmation' not in st.session_state and 'daily_affirmation' in st.session_state:
-        st.session_state.edited_affirmation = st.session_state.daily_affirmation
+    # Inicjalizacja zmiennych stanu dla edycji - przez StateManager
+    if not StateManager.has_key('generator.editing'):
+        StateManager.set('generator.editing', False)
+    if not StateManager.has_key('generator.edited_affirmation') and StateManager.has_key('daily.affirmation'):
+        StateManager.set('generator.edited_affirmation', StateManager.get('daily.affirmation'))
     
-    # Sprawdzamy czy afirmacja już istnieje w session_state
-    if 'daily_affirmation' not in st.session_state or st.session_state.daily_affirmation is None:
+    # Sprawdzamy czy afirmacja już istnieje w StateManager
+    if not StateManager.has_key('daily.affirmation') or StateManager.get('daily.affirmation') is None:
         _display_daily_affirmation_input(ai_service)
     else:
         _display_daily_affirmation_content(ai_service)
@@ -116,9 +117,9 @@ def _display_daily_affirmation_input(ai_service):
             if name_input:
                 with st.spinner("🌟 Tworzę Twoją afirmację dnia..."):
                     daily_affirmation = generate_daily_affirmation(ai_service, name_input)
-                    st.session_state.daily_affirmation_name = name_input
-                    st.session_state.daily_affirmation = daily_affirmation
-                    st.session_state.edited_affirmation = daily_affirmation
+                    StateManager.set('daily.affirmation_name', name_input)
+                    StateManager.set('daily.affirmation', daily_affirmation)
+                    StateManager.set('generator.edited_affirmation', daily_affirmation)
                     # Zapisywanie afirmacji dnia do historii
                     save_to_history(daily_affirmation)
                     st.rerun()
@@ -136,37 +137,38 @@ def _display_daily_affirmation_content(ai_service):
     
     with col2:
         # Obsługa trybu edycji
-        if st.session_state.editing:
-            st.session_state.edited_affirmation = st.text_area(
+        if StateManager.get('generator.editing', False):
+            edited_text = st.text_area(
                 "Edytuj afirmację:",
-                value=st.session_state.edited_affirmation,
+                value=StateManager.get('generator.edited_affirmation', ''),
                 height=150,
                 key="edit_daily_affirmation_text"
             )
+            StateManager.set('generator.edited_affirmation', edited_text)
             if st.button("Zapisz zmiany", use_container_width=True, key="save_daily_affirmation_changes"):
-                st.session_state.editing = False
-                st.session_state.daily_affirmation = st.session_state.edited_affirmation
+                StateManager.set('generator.editing', False)
+                StateManager.set('daily.affirmation', StateManager.get('generator.edited_affirmation'))
                 # Dodanie edytowanej afirmacji do historii
-                save_to_history(st.session_state.edited_affirmation)
+                save_to_history(StateManager.get('generator.edited_affirmation'))
                 st.rerun()
         else:
             # Wyświetlenie afirmacji w eleganckiej karcie
-            affirmation_card(st.session_state.edited_affirmation)
+            affirmation_card(StateManager.get('generator.edited_affirmation', ''))
             
             # Przyciski akcji
             col_a, col_b, col_c = st.columns([1, 1, 1])
             
             with col_a:
                 if st.button("Edytuj", use_container_width=True, key="edit_daily_affirmation"):
-                    st.session_state.editing = True
+                    StateManager.set('generator.editing', True)
                     st.rerun()
             
             with col_b:
                 if st.button("Nowa afirmacja", key="new_daily_affirmation", use_container_width=True):
                     with st.spinner("🌟 Generuję nową afirmację dnia..."):
-                        daily_affirmation = generate_daily_affirmation(ai_service, st.session_state.daily_affirmation_name)
-                        st.session_state.daily_affirmation = daily_affirmation
-                        st.session_state.edited_affirmation = daily_affirmation
+                        daily_affirmation = generate_daily_affirmation(ai_service, StateManager.get('daily.affirmation_name'))
+                        StateManager.set('daily.affirmation', daily_affirmation)
+                        StateManager.set('generator.edited_affirmation', daily_affirmation)
                         # Zapisywanie nowej afirmacji dnia do historii
                         save_to_history(daily_affirmation)
                         st.rerun()

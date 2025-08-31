@@ -5,6 +5,7 @@ import streamlit as st
 import base64
 from config.constants import VOICE_OPTIONS
 from ui.components import affirmation_card, centered_text, spacer
+from utils.session_state import StateManager
 
 def display_audio_player_section(openai_service):
     """
@@ -37,10 +38,11 @@ def display_audio_player_section(openai_service):
         
         # Pobranie tekstu afirmacji
         if text_source == "Wybierz z historii":
-            if st.session_state.history:
+            history = StateManager.get('generator.history', [])
+            if history:
                 selected_affirmation = st.selectbox(
                     "Wybierz afirmację:",
-                    st.session_state.history,
+                    history,
                     format_func=lambda x: x[:100] + "..." if len(x) > 100 else x,
                     key="audio_player_affirmation_select"
                 )
@@ -112,12 +114,12 @@ def display_audio_player_section(openai_service):
                         voice=selected_voice,
                         speed=speed
                     )
-                    st.session_state.player_audio_data = audio_data
+                    StateManager.set('audio.player_data', audio_data)
             except Exception as e:
                 st.error(f"❌ Błąd podczas generowania audio: {str(e)}")
         
         # Wyświetlenie odtwarzacza audio jeśli wygenerowano audio
-        if 'player_audio_data' in st.session_state and st.session_state.player_audio_data:
+        if StateManager.has_key('audio.player_data') and StateManager.get('audio.player_data'):
             st.markdown("---")
             st.markdown("""
                 <div style="text-align: center; width: 100%;">
@@ -125,10 +127,10 @@ def display_audio_player_section(openai_service):
                 </div>
             """, unsafe_allow_html=True)
             spacer("2rem")  # Dodanie większego odstępu
-            st.audio(st.session_state.player_audio_data, format="audio/mp3")
+            st.audio(StateManager.get('audio.player_data'), format="audio/mp3")
             
             # Link do pobrania
-            b64 = base64.b64encode(st.session_state.player_audio_data).decode()
+            b64 = base64.b64encode(StateManager.get('audio.player_data')).decode()
             filename = f"afirmacja_{voice_label.lower().replace(' ', '_')}_{speed}.mp3"
             download_href = f"""
                 <div style="text-align: center; margin-top: 1rem;">

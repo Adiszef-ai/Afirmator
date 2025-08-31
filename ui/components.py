@@ -88,6 +88,59 @@ def error_message(message):
     """
     st.error(f"❌ {message}")
 
+def progress_bar_context(steps, current_step=0):
+    """
+    Tworzy context manager z progress barem dla wieloetapowych operacji.
+    
+    Args:
+        steps (list): Lista nazw kroków
+        current_step (int): Aktualny krok (0-indexed)
+        
+    Returns:
+        tuple: (progress_bar, status_text) - obiekty do aktualizacji
+    """
+    progress_container = st.empty()
+    status_container = st.empty()
+    
+    progress_bar = progress_container.progress(0)
+    status_text = status_container.empty()
+    
+    return progress_bar, status_text
+
+def update_progress(progress_bar, status_text, step, total_steps, message):
+    """
+    Aktualizuje progress bar i status tekst.
+    
+    Args:
+        progress_bar: Obiekt progress bara
+        status_text: Obiekt status tekstu
+        step (int): Aktualny krok (1-indexed)
+        total_steps (int): Całkowita liczba kroków
+        message (str): Wiadomość do wyświetlenia
+    """
+    progress = step / total_steps
+    progress_bar.progress(progress)
+    status_text.text(f"Krok {step}/{total_steps}: {message}")
+
+def toast_notification(message, icon="🎉"):
+    """
+    Wyświetla toast notification (jeśli dostępne w Streamlit).
+    
+    Args:
+        message (str): Treść powiadomienia
+        icon (str): Ikona powiadomienia
+    """
+    try:
+        # Używaj st.toast jeśli dostępne (Streamlit 1.27+)
+        if hasattr(st, 'toast'):
+            st.toast(f"{icon} {message}")
+        else:
+            # Fallback do success message
+            st.success(f"{icon} {message}")
+    except Exception:
+        # Ultimate fallback
+        st.info(f"{icon} {message}")
+
 def warning_message(message):
     """
     Wyświetla komunikat ostrzeżenia z ikonką.
@@ -165,3 +218,82 @@ def spacer(height="1rem"):
         height (str): Wysokość odstępu w CSS
     """
     st.markdown(f"<div style='height: {height};'></div>", unsafe_allow_html=True)
+
+
+@st.fragment
+def render_history_selector(key_prefix: str, placeholder_text: str = "Wybierz afirmację..."):
+    """
+    Reusable fragment for selecting from affirmation history.
+    
+    Args:
+        key_prefix (str): Unique prefix for widget keys
+        placeholder_text (str): Placeholder text for selectbox
+        
+    Returns:
+        str: Selected affirmation or None
+    """
+    from utils.session_state import StateManager
+    
+    history = StateManager.get('generator.history', [])
+    if not history:
+        st.warning("Historia jest pusta. Najpierw wygeneruj afirmację!")
+        return None
+        
+    return st.selectbox(
+        "Wybierz afirmację:",
+        history,
+        format_func=lambda x: x[:100] + "..." if len(x) > 100 else x,
+        key=f"{key_prefix}_history_select",
+        placeholder=placeholder_text
+    )
+
+
+@st.fragment  
+def render_section_header(title: str, subtitle: str = None):
+    """
+    Reusable fragment for section headers.
+    
+    Args:
+        title (str): Main section title
+        subtitle (str, optional): Subtitle text
+    """
+    spacer("2.5rem")
+    st.markdown(f"<h2 style='text-align: center;'>{title}</h2>", unsafe_allow_html=True)
+    
+    if subtitle:
+        st.markdown(f"""
+            <div style="text-align: center; width: 100%;">
+                <h8> {subtitle} </h8>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    spacer("1.5rem")
+
+
+@st.fragment
+def render_centered_column_layout(content_callback, column_ratio=[1, 3, 1]):
+    """
+    Reusable fragment for centered column layout.
+    
+    Args:
+        content_callback (callable): Function to render content in center column
+        column_ratio (list): Column width ratios
+    """
+    col1, col2, col3 = st.columns(column_ratio)
+    with col2:
+        content_callback()
+
+
+@st.fragment
+def render_provider_info_message(provider_name: str, feature_name: str = "audio"):
+    """
+    Reusable fragment for provider-specific feature messages.
+    
+    Args:
+        provider_name (str): Name of the provider
+        feature_name (str): Name of the feature
+    """
+    if provider_name != "openai":
+        st.info(f"🎵 Funkcje {feature_name} dostępne tylko z OpenAI")
+        return True
+    return False

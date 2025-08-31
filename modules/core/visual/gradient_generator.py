@@ -1,21 +1,24 @@
 """
 Moduł do generowania gradientów dla wizualnych cytatów
 """
+import streamlit as st
+import hashlib
 from PIL import Image
 
-def create_gradient_background(width, height, color1, color2, direction="vertical"):
+# Cachowane generowanie gradientów - kosztowna operacja
+@st.cache_data(show_spinner=False, max_entries=20)  # Limit cache entries aby nie zużywać za dużo pamięci
+def _cached_create_gradient_background(width, height, color1_hash, color2_hash, direction):
     """
-    Tworzy tło gradientowe.
-    
-    Args:
-        width (int): Szerokość obrazu
-        height (int): Wysokość obrazu
-        color1 (tuple): Pierwszy kolor RGB
-        color2 (tuple): Drugi kolor RGB
-        direction (str): Kierunek gradientu ("vertical", "horizontal", "diagonal_tl_br", "diagonal_tr_bl", "radial")
-    
-    Returns:
-        Image: Obraz z gradientem
+    Cachowana wersja tworzenia gradientu.
+    Używa hash'y kolorów żeby cache działał poprawnie.
+    """
+    # Rekonstruuj kolory z hash'y (uproszczone - kolory są przekazane jako tuple)
+    # W rzeczywistości tutaj możemy przekazać kolory bezpośrednio
+    return _generate_gradient_image(width, height, color1_hash, color2_hash, direction)
+
+def _generate_gradient_image(width, height, color1, color2, direction):
+    """
+    Faktyczna implementacja generowania gradientu.
     """
     base = Image.new('RGB', (width, height), color1)
     top = Image.new('RGB', (width, height), color2)
@@ -44,3 +47,25 @@ def create_gradient_background(width, height, color1, color2, direction="vertica
     mask.putdata(mask_data)
     base.paste(top, (0, 0), mask)
     return base
+
+def create_gradient_background(width, height, color1, color2, direction="vertical"):
+    """
+    Tworzy tło gradientowe z cache dla lepszej wydajności.
+    
+    Args:
+        width (int): Szerokość obrazu
+        height (int): Wysokość obrazu
+        color1 (tuple): Pierwszy kolor RGB
+        color2 (tuple): Drugi kolor RGB
+        direction (str): Kierunek gradientu ("vertical", "horizontal", "diagonal_tl_br", "diagonal_tr_bl", "radial")
+    
+    Returns:
+        Image: Obraz z gradientem
+    """
+    # Używamy cachowanej wersji - przekazujemy kolory bezpośrednio
+    # Cache będzie działał dla identycznych parametrów
+    try:
+        return _cached_create_gradient_background(width, height, color1, color2, direction)
+    except Exception:
+        # Fallback do standardowego generowania jeśli cache nie działa
+        return _generate_gradient_image(width, height, color1, color2, direction)

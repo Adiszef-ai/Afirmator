@@ -13,6 +13,7 @@ from config.constants import (
 from services.openai_service import OpenAIService
 from config.utils import save_to_history
 from ui.components import spacer
+from utils.session_state import StateManager
 
 def display_generator_interface():
     """
@@ -117,12 +118,10 @@ def generate_affirmation(form_data, ai_service):
             else:
                 # Fallback dla uniwersalnych serwisów
                 affirmation = ai_service.generate_text(prompt)
-            st.session_state.update({
-                'affirmation': affirmation,
-                'edited_affirmation': affirmation,
-                'audio_data': None,
-                'user_name': form_data["user_name"]  # Store user name in session state
-            })
+            StateManager.set('generator.affirmation', affirmation)
+            StateManager.set('generator.edited_affirmation', affirmation)
+            StateManager.set('audio.data', None)
+            StateManager.set('generator.user_name', form_data["user_name"])
             save_to_history(affirmation)
             return affirmation
     except Exception as e:
@@ -137,7 +136,7 @@ def display_affirmation_result(ai_service, provider_name="openai"):
         ai_service: Instancja serwisu AI.
         provider_name (str): Nazwa providera AI.
     """
-    if not st.session_state.affirmation:
+    if not StateManager.get('generator.affirmation'):
         return
 
     st.markdown("---")
@@ -150,7 +149,7 @@ def display_affirmation_result(ai_service, provider_name="openai"):
         """, unsafe_allow_html=True)
         
         # Obsługa trybu edycji
-        if st.session_state.editing:
+        if StateManager.get('generator.editing', False):
             _display_affirmation_edit_mode()
         else:
             _display_affirmation_view_mode()
@@ -162,17 +161,18 @@ def display_affirmation_result(ai_service, provider_name="openai"):
 
 def _display_affirmation_edit_mode():
     """Wyświetla interfejs edycji afirmacji."""
-    st.session_state.edited_affirmation = st.text_area(
+    edited_text = st.text_area(
         "Edytuj afirmację:",
-        value=st.session_state.edited_affirmation,
+        value=StateManager.get('generator.edited_affirmation', ''),
         height=150,
         key="edit_affirmation_text"
     )
+    StateManager.set('generator.edited_affirmation', edited_text)
     if st.button("Zapisz zmiany", use_container_width=True, key="save_affirmation_changes"):
-        st.session_state.editing = False
-        st.session_state.audio_data = None
+        StateManager.set('generator.editing', False)
+        StateManager.set('audio.data', None)
         # Dodanie edytowanej afirmacji do historii
-        save_to_history(st.session_state.edited_affirmation)
+        save_to_history(StateManager.get('generator.edited_affirmation'))
         st.rerun()
 
 def _display_affirmation_view_mode():
@@ -183,7 +183,7 @@ def _display_affirmation_view_mode():
             text-align: center;
             font-size: 18px;
         ">
-            {st.session_state.edited_affirmation}
+            {StateManager.get('generator.edited_affirmation', '')}
         </div>
         """, 
         unsafe_allow_html=True
@@ -194,15 +194,15 @@ def _display_affirmation_view_mode():
     
     with col_a:
         if st.button("Edytuj", use_container_width=True, key="edit_affirmation_button"):
-            st.session_state.editing = True
+            StateManager.set('generator.editing', True)
             st.rerun()
     
     with col_b:
         if st.button("Nowa afirmacja", use_container_width=True, key="new_generator_affirmation"):
             # Resetujemy stan edycji, ale zachowujemy dane użytkownika aby pokazać ponownie formularz
-            st.session_state.affirmation = None
-            st.session_state.edited_affirmation = None
-            st.session_state.editing = False
+            StateManager.set('generator.affirmation', None)
+            StateManager.set('generator.edited_affirmation', None)
+            StateManager.set('generator.editing', False)
             st.rerun()
     
     with col_c:

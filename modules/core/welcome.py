@@ -5,6 +5,7 @@ import streamlit as st
 from config.utils import check_api_key
 from ui.sidebar import display_sidebar
 from ui.components import spacer
+from utils.session_state import StateManager
 
 
 def welcome_screen():
@@ -128,7 +129,7 @@ def display_provider_selection():
         if st.button("Użyj Groq", key="select_groq", use_container_width=True, type="primary"):
             # Sprawdź czy mamy klucz Groq w secrets
             if check_api_key("groq"):
-                st.session_state.selected_provider = "groq"
+                StateManager.set('app.selected_provider', "groq")
                 st.rerun()
             else:
                 st.error("Brak klucza Groq w konfiguracji. Dodaj klucz do secrets.toml lub zmiennych środowiskowych.")
@@ -161,14 +162,14 @@ def display_provider_selection():
         if st.button("Użyj OpenAI", key="select_openai", use_container_width=True):
             # Sprawdź czy mamy klucz OpenAI w secrets/env
             if check_api_key("openai"):
-                st.session_state.selected_provider = "openai"
+                StateManager.set('app.selected_provider', "openai")
                 st.rerun()
             else:
                 # Pokaż formularz do wprowadzenia klucza
-                st.session_state.show_openai_form = True
+                StateManager.set('app.show_openai_form', True)
     
     # Formularz dla OpenAI API key (jeśli potrzebny)
-    if st.session_state.get('show_openai_form', False):
+    if StateManager.get('app.show_openai_form', False):
         st.markdown("---")
         st.markdown("""
             <div style="text-align: center; width: 100%;">
@@ -193,15 +194,15 @@ def display_provider_selection():
                     submit_button = st.form_submit_button("Zatwierdź", use_container_width=True, type="primary")
                 
                 if cancel_button:
-                    st.session_state.show_openai_form = False
+                    StateManager.set('app.show_openai_form', False)
                     st.rerun()
                 
                 if submit_button and api_key:
                     # Waliduj klucz
-                    st.session_state.api_key = api_key
+                    StateManager.set('app.api_key', api_key)
                     if check_api_key("openai"):
-                        st.session_state.selected_provider = "openai"
-                        st.session_state.show_openai_form = False
+                        StateManager.set('app.selected_provider', "openai")
+                        StateManager.set('app.show_openai_form', False)
                         st.rerun()
                     else:
                         st.error("Nieprawidłowy klucz API. Sprawdź format.")
@@ -221,8 +222,8 @@ def display_sidebar_with_provider(provider_name):
     
     # Przycisk zmiany providera
     if st.sidebar.button("🔄 Zmień model AI", use_container_width=True):
-        st.session_state.selected_provider = None
-        st.session_state.show_openai_form = False
+        StateManager.set('app.selected_provider', None)
+        StateManager.set('app.show_openai_form', False)
         st.rerun()
     
     st.sidebar.markdown("---")

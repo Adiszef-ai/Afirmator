@@ -2,9 +2,35 @@
 services/ai_factory.py - Fabryka serwisów AI do zarządzania różnymi providerami
 """
 import streamlit as st
+import hashlib
 from .openai_service import OpenAIService
 from .groq_service import GroqService
-from config.utils import check_api_key
+from config.utils import check_api_key, get_api_key
+
+# Cachowane singleton serwisy
+@st.cache_resource(show_spinner=False)
+def get_openai_service(_api_key_hash):
+    """
+    Cachowany singleton OpenAI Service.
+    _api_key_hash jest używane tylko do invalidacji cache przy zmianie klucza.
+    """
+    try:
+        return OpenAIService()
+    except Exception as e:
+        st.error(f"Błąd inicjalizacji OpenAI Service: {str(e)}")
+        return None
+
+@st.cache_resource(show_spinner=False)
+def get_groq_service(_api_key_hash):
+    """
+    Cachowany singleton Groq Service.
+    _api_key_hash jest używane tylko do invalidacji cache przy zmianie klucza.
+    """
+    try:
+        return GroqService()
+    except Exception as e:
+        st.error(f"Błąd inicjalizacji Groq Service: {str(e)}")
+        return None
 
 class AIServiceFactory:
     """
@@ -34,7 +60,7 @@ class AIServiceFactory:
     @staticmethod
     def create_service(provider="openai"):
         """
-        Tworzy serwis AI dla wybranego providera
+        Tworzy cachowany serwis AI dla wybranego providera (singleton).
         
         Args:
             provider (str): Nazwa providera ("openai" lub "groq")
@@ -43,10 +69,19 @@ class AIServiceFactory:
             Service object: Serwis AI lub None jeśli błąd
         """
         try:
+            # Pobierz API key dla invalidacji cache
+            api_key = get_api_key(provider)
+            if not api_key:
+                st.error(f"Brak klucza API dla {provider}")
+                return None
+                
+            # Utwórz hash klucza do invalidacji cache
+            api_key_hash = hashlib.md5(api_key.encode()).hexdigest()
+            
             if provider == "openai":
-                return OpenAIService()
+                return get_openai_service(api_key_hash)
             elif provider == "groq":
-                return GroqService()
+                return get_groq_service(api_key_hash)
             else:
                 raise ValueError(f"Nieznany provider: {provider}")
         except Exception as e:

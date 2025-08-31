@@ -7,7 +7,10 @@ import os
 import tempfile
 from pydub import AudioSegment
 from config.constants import VOICE_OPTIONS, BACKGROUND_SOUNDS
-from ui.components import affirmation_card, centered_text, spacer
+from components.affirmation_selector import render_affirmation_selector, render_voice_settings
+from components.audio_player import render_audio_player, generate_audio_with_spinner, render_audio_tips
+from ui.components import render_section_header, render_centered_column_layout, centered_text
+from utils.session_state import StateManager
 
 def display_musical_affirmation_section(openai_service):
     """
@@ -16,94 +19,19 @@ def display_musical_affirmation_section(openai_service):
     Args:
         openai_service (OpenAIService): Instancja serwisu OpenAI.
     """
-    spacer("2.5rem")
-    st.markdown("<h2 style='text-align: center;'>Muzyczna Afirmacja</h2>", unsafe_allow_html=True)
-    st.markdown("""
-        <div style="text-align: center; width: 100%;">
-            <h8> Połącz swoją afirmację z relaksującym podkładem muzycznym </h8>
-        </div>
-    """, unsafe_allow_html=True)
-    spacer("1.5rem")
+    render_section_header(
+        "Muzyczna Afirmacja",
+        "Połącz swoją afirmację z relaksującym podkładem muzycznym"
+    )
     
-    centered_text("Wybór afirmacji")
-    # Główna zawartość w kolumnach
-    col1, col2, col3 = st.columns([1, 3, 1])
-    
-    with col2:
-        # Wybór źródła tekstu
-        text_source = st.radio(
-            "Źródło tekstu afirmacji:",
-            ["Wybierz z historii", "Wpisz własny tekst"],
-            horizontal=True,
-            key="music_aff_text_source"
-        )
-        
-        # Pobranie tekstu afirmacji
-        if text_source == "Wybierz z historii":
-            if st.session_state.history:
-                selected_affirmation = st.selectbox(
-                    "Wybierz afirmację:",
-                    st.session_state.history,
-                    format_func=lambda x: x[:100] + "..." if len(x) > 100 else x,
-                    key="music_aff_select"
-                )
-            else:
-                st.warning("Historia jest pusta. Najpierw wygeneruj afirmację!")
-                return
-        else:
-            selected_affirmation = st.text_area(
-                "Wpisz własny tekst afirmacji:",
-                height=100,
-                placeholder="Wpisz swoją afirmację...",
-                help="Wpisz afirmację, którą chcesz połączyć z muzyką",
-                key="music_aff_custom_text",
-                max_chars=300
-            )
-            
-            # Przycisk do akceptacji własnej afirmacji
-            if st.button("Akceptuj afirmację", use_container_width=True, type="primary", key="music_aff_accept_btn"):
-                if not selected_affirmation or len(selected_affirmation.strip()) == 0:
-                    st.warning("Proszę wpisać tekst afirmacji!")
-                    return
-                # Wyświetlenie wybranej afirmacji w karcie
-                centered_text("Wybrana afirmacja")
-                affirmation_card(selected_affirmation)
-                spacer("1rem")
-        
+    def render_content():
+        # Use reusable affirmation selector
+        selected_affirmation = render_affirmation_selector("music_aff")
         if not selected_affirmation:
-            st.warning("Proszę wybrać lub wpisać afirmację")
             return
         
-        # Wyświetlenie wybranej afirmacji w karcie (dla wyboru z historii)
-        if text_source == "Wybierz z historii":
-            centered_text("Wybrana afirmacja")
-            affirmation_card(selected_affirmation)
-            spacer("1rem")
-        
-        # Panel ustawień muzycznych
-        centered_text("Ustawienia audio")
-        
-
-        # Wybór głosu
-        voice_label = st.selectbox(
-            "Głos narracji:",
-            options=list(VOICE_OPTIONS.keys()),
-            index=2,
-            help="Wybierz głos, który najbardziej Ci odpowiada",
-            key="music_aff_voice_select"
-        )
-        selected_voice = VOICE_OPTIONS[voice_label]
-        
-        # Prędkość mówienia
-        speed = st.slider(
-            "Prędkość mówienia:",
-            min_value=0.5,
-            max_value=1.5,
-            value=0.8,
-            step=0.05,
-            help="Ustaw prędkość mówienia (0.5 = wolno, 1.0 = normalnie, 1.5 = szybko)",
-            key="music_aff_speed_slider"
-        )
+        # Use reusable voice settings
+        voice_settings = render_voice_settings("music_aff")
     
         # Liczba powtórzeń
         repetitions = st.slider(
@@ -169,72 +97,106 @@ def display_musical_affirmation_section(openai_service):
         # Przycisk generowania
         if st.button("🎵 Wygeneruj muzyczną afirmację", use_container_width=True, key="music_aff_generate_btn"):
             try:
-                with st.spinner("Generuję muzyczną afirmację..."):
-                    # 1. Generowanie audio afirmacji
-                    affirmation_audio = openai_service.generate_affirmation_audio(
-                        selected_affirmation,
-                        voice=selected_voice,
-                        speed=speed
+                # Import funkcji progress bara
+                from ui.components import progress_bar_context, update_progress, toast_notification
+                
+                # Tworzenie progress bara
+                progress_bar, status_text = progress_bar_context(
+                    ["Generowanie audio", "Przetwarzanie podkładu", "Miksowanie", "Finalizacja"]
+                )
+                
+                # Krok 1: Generowanie audio afirmacji
+                update_progress(progress_bar, status_text, 1, 4, "Generowanie audio afirmacji...")
+                affirmation_audio = openai_service.generate_affirmation_audio(
+                    selected_affirmation,
+                    voice=voice_settings['voice'],
+                    speed=voice_settings['speed']
+                )
+                
+                # Krok 2: Przetwarzanie podkładu
+                if background_file or selected_background:
+                    update_progress(progress_bar, status_text, 2, 4, "Przetwarzanie podkładu muzycznego...")
+                    
+                    # Zapisywanie afirmacji do pliku tymczasowego
+                    with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_affirmation:
+                        temp_affirmation.write(affirmation_audio)
+                        temp_affirmation_path = temp_affirmation.name
+                    
+                    # Pobieranie ścieżki podkładu
+                    background_path = ""
+                    if background_file:
+                        # Dla wgranego pliku
+                        with tempfile.NamedTemporaryFile(suffix="." + background_file.name.split(".")[-1], delete=False) as temp_bg:
+                            temp_bg.write(background_file.getbuffer())
+                            background_path = temp_bg.name
+                    else:
+                        # Dla predefiniowanego dźwięku
+                        background_path = BACKGROUND_SOUNDS[selected_background]
+                    
+                    # Krok 3: Miksowanie
+                    update_progress(progress_bar, status_text, 3, 4, "Miksowanie afirmacji z podkładem...")
+                    mixed_audio_data = mix_audio(
+                        temp_affirmation_path, 
+                        background_path, 
+                        repetitions, 
+                        pause_between,
+                        background_volume / 100.0
                     )
                     
-                    # 2. Tworzenie zmiksowanego audio
-                    if background_file or selected_background:
-                        # Zapisywanie afirmacji do pliku tymczasowego
-                        with tempfile.NamedTemporaryFile(suffix=".mp3", delete=False) as temp_affirmation:
-                            temp_affirmation.write(affirmation_audio)
-                            temp_affirmation_path = temp_affirmation.name
-                        
-                        # Pobieranie ścieżki podkładu
-                        background_path = ""
-                        if background_file:
-                            # Dla wgranego pliku
-                            with tempfile.NamedTemporaryFile(suffix="." + background_file.name.split(".")[-1], delete=False) as temp_bg:
-                                temp_bg.write(background_file.getbuffer())
-                                background_path = temp_bg.name
-                        else:
-                            # Dla predefiniowanego dźwięku
-                            background_path = BACKGROUND_SOUNDS[selected_background]
-                        
-                        # Miksuję audio
-                        mixed_audio_data = mix_audio(
-                            temp_affirmation_path, 
-                            background_path, 
-                            repetitions, 
-                            pause_between,
-                            background_volume / 100.0
-                        )
-                        
-                        # Usuwanie plików tymczasowych
-                        if os.path.exists(temp_affirmation_path):
-                            os.unlink(temp_affirmation_path)
-                        
-                        # Jeśli był wgrany plik, usuń również tymczasowy plik podkładu
-                        if background_file and os.path.exists(background_path):
-                            os.unlink(background_path)
-                        
-                        # Zapisuję zmiksowane audio w sesji
-                        st.session_state.music_affirmation_audio = mixed_audio_data
-                        st.success("✅ Muzyczna afirmacja wygenerowana!")
-                    else:
-                        st.error("Proszę wybrać podkład muzyczny")
+                    # Usuwanie plików tymczasowych
+                    if os.path.exists(temp_affirmation_path):
+                        os.unlink(temp_affirmation_path)
+                    
+                    # Jeśli był wgrany plik, usuń również tymczasowy plik podkładu
+                    if background_file and os.path.exists(background_path):
+                        os.unlink(background_path)
+                    
+                    # Krok 4: Finalizacja
+                    update_progress(progress_bar, status_text, 4, 4, "Finalizacja...")
+                    StateManager.set('audio.music_affirmation', mixed_audio_data)
+                    
+                    # Czyszczenie progress bara
+                    progress_bar.empty()
+                    status_text.empty()
+                    
+                    # Toast notification
+                    toast_notification("Muzyczna afirmacja gotowa!", "🎵")
+                else:
+                    # Przypadek bez podkładu - tylko afirmacja
+                    update_progress(progress_bar, status_text, 2, 4, "Pomijanie podkładu...")
+                    update_progress(progress_bar, status_text, 3, 4, "Pomijanie miksowania...")
+                    update_progress(progress_bar, status_text, 4, 4, "Finalizacja...")
+                    
+                    StateManager.set('audio.music_affirmation', affirmation_audio)
+                    
+                    # Czyszczenie progress bara
+                    progress_bar.empty()
+                    status_text.empty()
+                    
+                    # Toast notification
+                    toast_notification("Afirmacja gotowa!", "🎙️")
             except Exception as e:
                 st.error(f"❌ Błąd podczas generowania muzycznej afirmacji: {str(e)}")
         
         # Wyświetlenie odtwarzacza audio jeśli wygenerowano audio
-        if 'music_affirmation_audio' in st.session_state and st.session_state.music_affirmation_audio:
+        if StateManager.has_key('audio.music_affirmation') and StateManager.get('audio.music_affirmation'):
+            bg_name = selected_background if selected_background else "custom"
+            filename_base = f"muzyczna_afirmacja_{bg_name}_{repetitions}x"
+            
+            # Use custom header for musical affirmation
             st.markdown("---")    
             st.markdown("""
                 <div style="text-align: center; width: 100%;">
                     <h8> Twoja muzyczna afirmacja: </h8>
                 </div>
             """, unsafe_allow_html=True)
-            spacer("2rem")  # Dodanie większego odstępu
-            st.audio(st.session_state.music_affirmation_audio, format="audio/mp3")
+            from ui.components import spacer
+            spacer("2rem")
+            st.audio(StateManager.get('audio.music_affirmation'), format="audio/mp3")
             
-            # Link do pobrania
-            b64 = base64.b64encode(st.session_state.music_affirmation_audio).decode()
-            bg_name = selected_background if selected_background else "custom"
-            filename = f"muzyczna_afirmacja_{bg_name}_{repetitions}x.mp3"
+            # Custom download link for musical affirmation  
+            b64 = base64.b64encode(StateManager.get('audio.music_affirmation')).decode()
+            filename = f"{filename_base}.mp3"
             download_href = f"""
                 <div style="text-align: center; margin-top: 1rem;">
                     <a href="data:file/mp3;base64,{b64}" 
@@ -246,20 +208,18 @@ def display_musical_affirmation_section(openai_service):
             """
             st.markdown(download_href, unsafe_allow_html=True)
     
-    # Wskazówki na zewnątrz kolumn
-    spacer("1.5rem")
-    st.markdown("""
-    <div style="padding: 15px; border-radius: 10px; margin-top: 20px;">
-        <h5 style="margin-top: 0.0;">💡 Jak korzystać z muzycznych afirmacji</h5>
-        <ul style="text-align: left; margin-top: 0.2rem;">
-            <li>Słuchaj przed snem, aby wpłynąć na podświadomość</li>
-            <li>Użyj podczas medytacji rano, aby ustawić pozytywną intencję na dzień</li>
-            <li>Stosuj jako tło podczas jogi lub ćwiczeń relaksacyjnych</li>
-            <li>Słuchaj w słuchawkach w spokojnym miejscu dla najlepszych efektów</li>
-            <li>Regularne słuchanie wzmacnia efekt afirmacji</li>
-        </ul>
-    </div>
-    """, unsafe_allow_html=True)
+    # Use centered column layout
+    render_centered_column_layout(render_content)
+    
+    # Use reusable audio tips with custom content for musical affirmations
+    musical_tips = [
+        "Słuchaj przed snem, aby wpłynąć na podświadomość",
+        "Użyj podczas medytacji rano, aby ustawić pozytywną intencję na dzień", 
+        "Stosuj jako tło podczas jogi lub ćwiczeń relaksacyjnych",
+        "Słuchaj w słuchawkach w spokojnym miejscu dla najlepszych efektów",
+        "Regularne słuchanie wzmacnia efekt afirmacji"
+    ]
+    render_audio_tips("💡 Jak korzystać z muzycznych afirmacji", musical_tips)
 
 
 def mix_audio(affirmation_path, background_path, repetitions, pause_seconds, background_volume_ratio):

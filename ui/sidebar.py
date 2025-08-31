@@ -3,6 +3,7 @@ app/ui/sidebar.py - Komponenty interfejsu dla panelu bocznego - wersja ulepszona
 """
 import streamlit as st
 from ui.components import button_with_icon
+from utils.session_state import StateManager
 
 def display_sidebar():
     """
@@ -45,7 +46,7 @@ def _display_history_section():
     """
     st.markdown("<h3 style='color: white; a'>📚 Historia afirmacji</h3>", unsafe_allow_html=True)
     
-    if st.session_state.history:
+    if StateManager.get('generator.history', []):
         # Filtrowanie i wyszukiwanie
         search_term = st.text_input(
             "Szukaj w historii", 
@@ -56,10 +57,11 @@ def _display_history_section():
         st.markdown("<div style='margin-bottom: 0.rem;'></div>", unsafe_allow_html=True)  # Spacer
         
         # Filtrowanie historii
+        history = StateManager.get('generator.history', [])
         filtered_history = [
-            aff for aff in st.session_state.history 
+            aff for aff in history 
             if search_term.lower() in aff.lower()
-        ] if search_term else st.session_state.history
+        ] if search_term else history
         
         if filtered_history:
             # Dodajemy własny styl dla selectbox
@@ -89,10 +91,10 @@ def _display_history_section():
                 """, unsafe_allow_html=True)
                 
                 if button_with_icon("Użyj tej afirmacji", "▶️", key="use_history_affirmation"):
-                    st.session_state.edited_affirmation = selected
-                    st.session_state.affirmation = selected
-                    st.session_state.audio_data = None
-                    st.session_state.current_tab = "generator"
+                    StateManager.set('generator.edited_affirmation', selected)
+                    StateManager.set('generator.affirmation', selected)
+                    StateManager.set('audio.data', None)
+                    StateManager.set('app.current_tab', "generator")
                     st.rerun()
         else:
             st.markdown("<p style='color: rgba(255, 255, 255, 0.8);'>Nie znaleziono afirmacji pasujących do wyszukiwania.</p>", unsafe_allow_html=True)
@@ -105,7 +107,7 @@ def _display_stats_section():
     """
     st.markdown("<h3 style='color: white;'>📊 Statystyki</h3>", unsafe_allow_html=True)
     
-    total_affirmations = len(st.session_state.history)
+    total_affirmations = len(StateManager.get('generator.history', []))
     
     col1, col2 = st.columns(2)
     with col1:
@@ -119,7 +121,7 @@ def _display_stats_section():
         # Można dodać więcej statystyk w przyszłości
         st.metric(
             label="Dzisiaj",
-            value=1 if st.session_state.get('daily_affirmation') else 0,
+            value=1 if StateManager.get('daily.affirmation') else 0,
             help="Afirmacje wygenerowane dzisiaj"
         )
 

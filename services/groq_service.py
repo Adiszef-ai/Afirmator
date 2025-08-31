@@ -2,8 +2,36 @@
 services/groq_service.py - Serwis do obsługi Groq AI API
 """
 import streamlit as st
+import hashlib
 from groq import Groq
 from config.utils import get_api_key
+
+# Cachowane funkcje dla Groq AI
+@st.cache_data(ttl=3600, show_spinner=False)  # Cache na godzinę
+def _cached_groq_generate_text(prompt_hash, model, max_tokens, temperature, api_key_hash):
+    """
+    Cachowana wersja generowania tekstu przez Groq.
+    """
+    api_key = get_api_key("groq")
+    if not api_key:
+        st.error("Brak klucza API Groq dla cache")
+        return None
+        
+    client = Groq(api_key=api_key)
+    
+    try:
+        response = client.chat.completions.create(
+            model=model,
+            messages=[
+                {"role": "user", "content": prompt_hash}
+            ],
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+        return response.choices[0].message.content.strip()
+    except Exception as e:
+        st.error(f"🔴 Błąd cache Groq: {str(e)}")
+        return None
 
 class GroqService:
     """
@@ -23,7 +51,7 @@ class GroqService:
     
     def generate_text(self, prompt, max_tokens=500, temperature=0.7):
         """
-        Generuje tekst używając Groq AI
+        Generuje tekst używając Groq AI z cache.
         
         Args:
             prompt (str): Prompt dla modelu
@@ -33,6 +61,27 @@ class GroqService:
         Returns:
             str: Wygenerowany tekst
         """
+        # Tworzenie hash'y dla cache
+        api_key = get_api_key("groq")
+        if not api_key:
+            st.error("Brak klucza API Groq")
+            return None
+            
+        api_key_hash = hashlib.md5(api_key.encode()).hexdigest()[:8]
+        cache_key = f"{prompt}|{self.model}|{max_tokens}|{temperature}"
+        
+        # Sprawdź cache dla deterministycznych zapytań
+        if temperature <= 0.3:
+            try:
+                cached_result = _cached_groq_generate_text(
+                    cache_key, self.model, max_tokens, temperature, api_key_hash
+                )
+                if cached_result:
+                    return cached_result
+            except Exception:
+                pass  # Fallback do normalnego API
+        
+        # Normalny API call
         try:
             response = self.client.chat.completions.create(
                 model=self.model,
@@ -46,12 +95,24 @@ class GroqService:
             return response.choices[0].message.content.strip()
             
         except Exception as e:
-            error_msg = f"Błąd generowania tekstu z Groq: {str(e)}"
-            try:
-                st.error(error_msg)
-            except:
-                print(error_msg)  # Fallback dla testów
-            return None
+            # Obsługa specyficznych błędów Groq
+            error_str = str(e).lower()
+            
+            if "authentication" in error_str or "unauthorized" in error_str:
+                st.error("🔐 Nieprawidłowy klucz API Groq. Sprawdź swoje ustawienia.")
+                return None
+            elif "rate limit" in error_str or "quota" in error_str:
+                st.warning("⏰ Limit API Groq osiągnięty. Spróbuj ponownie za chwilę.")
+                return None
+            elif "connection" in error_str or "timeout" in error_str:
+                st.error("🌐 Problem z połączeniem do API Groq. Sprawdź połączenie internetowe.")
+                return None
+            elif "model" in error_str and "not found" in error_str:
+                st.error(f"🤖 Model {self.model} nie jest dostępny w Groq. Sprawdź dostępne modele.")
+                return None
+            else:
+                st.error(f"🔴 Problem z API Groq: {str(e)}")
+                return None
     
     def generate_affirmation(self, categories=None, tone="pozytywny", timing="rano", 
                            context="", user_name="", language="polski", length="3-4 zdań"):

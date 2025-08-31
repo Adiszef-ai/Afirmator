@@ -116,7 +116,7 @@ DPI_OPTIONS = {
     "Ekran/Web (72 DPI)": 72
 }
 
-# Początkowe wartości sesji
+# Początkowe wartości sesji (stary format dla zgodności wstecznej)
 DEFAULT_SESSION_STATE = {
     'editing': False,
     'edited_affirmation': "",
@@ -134,4 +134,31 @@ DEFAULT_SESSION_STATE = {
     'current_tab': "daily",  # Domyślnie pokazujemy zakładkę "Afirmacja dnia"
     'selected_provider': None,  # Wybór providera AI
     'show_openai_form': False  # Czy pokazać formularz OpenAI
+}
+
+# Nowy namespace-based stan sesji (zalecany sposób użycia)
+DEFAULT_NAMESPACED_STATE = {
+    # Generator namespace
+    'generator.editing': False,
+    'generator.edited_affirmation': "",
+    'generator.affirmation': "",
+    'generator.history': [],
+    
+    # Audio namespace
+    'audio.data': None,
+    'audio.selected_voice': "fable",
+    'audio.daily_data': None,
+    'audio.player_data': None,
+    'audio.music_affirmation': None,
+    
+    # Daily namespace
+    'daily.affirmation': None,
+    'daily.affirmation_name': "",
+    'daily.show_input': True,
+    
+    # App namespace
+    'app.current_tab': "daily",
+    'app.selected_provider': None,
+    'app.show_openai_form': False,
+    'app.api_key': ""
 }

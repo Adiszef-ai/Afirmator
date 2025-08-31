@@ -11,6 +11,7 @@ from ui.components import warning_message, api_key_input
 def init_session_state():
     """
     Inicjalizuje stan sesji z domyślnymi wartościami.
+    DEPRECATED: Użyj utils.session_state.StateManager.init_state()
     """
     for key, value in DEFAULT_SESSION_STATE.items():
         if key not in st.session_state:
@@ -44,12 +45,27 @@ def save_to_history(affirmation):
     Args:
         affirmation (str): Afirmacja do zapisania.
     """
-    if affirmation and affirmation not in st.session_state.history:
-        # Dodajemy nową afirmację na początek listy
-        st.session_state.history.insert(0, affirmation)
-        # Utrzymujemy maksymalnie 50 afirmacji w historii
-        if len(st.session_state.history) > 50:
-            st.session_state.history.pop()
+    if not affirmation:
+        return
+    
+    # Sprawdź zarówno stary jak i nowy klucz dla zgodności wstecznej
+    try:
+        from utils.session_state import StateManager
+        history = StateManager.get('generator.history', [])
+        
+        if affirmation not in history:
+            # Dodajemy nową afirmację na początek listy
+            history.insert(0, affirmation)
+            # Utrzymujemy maksymalnie 50 afirmacji w historii
+            if len(history) > 50:
+                history.pop()
+            StateManager.set('generator.history', history)
+    except ImportError:
+        # Fallback do starego sposobu
+        if affirmation and affirmation not in st.session_state.history:
+            st.session_state.history.insert(0, affirmation)
+            if len(st.session_state.history) > 50:
+                st.session_state.history.pop()
 
 def get_api_key(provider="openai"):
     """
@@ -83,6 +99,16 @@ def get_api_key(provider="openai"):
             return env_key
     
     # 3. Fallback do session_state (user input)
+    # Sprawdź nowy namespace-based klucz najpierw
+    try:
+        from utils.session_state import StateManager
+        api_key = StateManager.get('app.api_key')
+        if api_key:
+            return api_key
+    except ImportError:
+        pass
+    
+    # Fallback do starego klucza dla zgodności wstecznej
     if hasattr(st.session_state, 'api_key') and st.session_state.api_key:
         return st.session_state.api_key
         

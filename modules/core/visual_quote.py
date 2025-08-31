@@ -2,6 +2,7 @@
 app/modules/visual_quote.py - Moduł obsługujący generowanie wizualnych cytatów z afirmacjami - zrefaktoryzowany.
 """
 import streamlit as st
+import os
 from PIL import Image
 import io
 import base64
@@ -12,14 +13,18 @@ from config.constants import (
 )
 from .visual.font_manager import setup_fonts
 from .visual.image_composer import create_visual_quote, get_size_in_cm
+from utils.session_state import StateManager
 
-# Inicjalizacja czcionek
-setup_fonts()
+# Inicjalizacja czcionek - przenieś do funkcji aby nie uruchamiać przy imporcie
+# setup_fonts()  # Będzie wywołane w display_visual_quote_section()
 
 def display_visual_quote_section():
     """
     Wyświetla sekcję generowania wizualnych cytatów.
     """
+    # Inicjalizacja czcionek - teraz gdy st.set_page_config już się wykonał
+    setup_fonts()
+    
     spacer("2.5rem")
     st.markdown("<h2 style='text-align: center;'>Wizualny Cytat</h2>", unsafe_allow_html=True)
     st.markdown("""
@@ -28,14 +33,40 @@ def display_visual_quote_section():
         </div>
     """, unsafe_allow_html=True)
     spacer("1.5rem")
+    
+    # Wyświetl komunikat o czcionkach (jeśli jest zapisany)
+    if 'font_setup_message' in st.session_state:
+        font_msg = st.session_state['font_setup_message']
+        if font_msg['type'] == 'success':
+            st.success(font_msg['message'])
+        elif font_msg['type'] == 'warning':
+            st.warning(font_msg['message'].split('\n')[0])  # Tylko pierwsza linia
+            st.info(font_msg['message'].split('\n')[1])  # Druga linia jako info
+        # Usuń komunikat po wyświetleniu
+        del st.session_state['font_setup_message']
+    
+    # Wyświetl komunikat o czyszczeniu cache (jeśli jest)
+    if 'cache_cleared_message' in st.session_state:
+        st.success(st.session_state['cache_cleared_message'])
+        del st.session_state['cache_cleared_message']
+    
+    # Wyświetl komunikaty o folderze fontów (jeśli są)
+    if 'font_folder_created' in st.session_state:
+        st.info(st.session_state['font_folder_created'])
+        del st.session_state['font_folder_created']
+    
+    if 'font_folder_error' in st.session_state:
+        st.error(st.session_state['font_folder_error'])
+        del st.session_state['font_folder_error']
 
     # Inicjalizacja zmiennych stanu
-    if 'visual_quote_generated' not in st.session_state:
-        st.session_state.visual_quote_generated = False
+    if not StateManager.has_key('visual.quote_generated'):
+        StateManager.set('visual.quote_generated', False)
     
     # Funkcja do akceptacji własnego tekstu
     def accept_custom_text():
-        if not st.session_state.custom_affirmation or len(st.session_state.custom_affirmation.strip()) == 0:
+        custom_text = StateManager.get('visual.custom_affirmation', '')
+        if not custom_text or len(custom_text.strip()) == 0:
             st.warning("Proszę wpisać tekst afirmacji!")
             return False
         return True
@@ -56,10 +87,11 @@ def display_visual_quote_section():
         selected_affirmation = None
         
         if text_source == "Wybierz z historii":
-            if st.session_state.history:
+            history = StateManager.get('generator.history', [])
+            if history:
                 selected_affirmation = st.selectbox(
                     "Wybierz afirmację:",
-                    st.session_state.history,
+                    history,
                     format_func=lambda x: x[:100] + "..." if len(x) > 100 else x,
                     key="history_selection"
                 )
@@ -71,21 +103,23 @@ def display_visual_quote_section():
                 st.warning("Historia jest pusta. Najpierw wygeneruj afirmację!")
                 return
         else:
-            if 'custom_affirmation' not in st.session_state:
-                st.session_state.custom_affirmation = ""
+            if not StateManager.has_key('visual.custom_affirmation'):
+                StateManager.set('visual.custom_affirmation', "")
                 
             custom_text = st.text_area(
                 "Wpisz własny tekst afirmacji:",
                 height=100,
                 placeholder="Wpisz swoją afirmację...",
                 max_chars=300,
-                key="custom_affirmation"
+                key="custom_affirmation",
+                value=StateManager.get('visual.custom_affirmation', '')
             )
+            StateManager.set('visual.custom_affirmation', custom_text)
             
             # Przycisk do akceptacji własnej afirmacji
             if st.button("Akceptuj afirmację", use_container_width=True, type="primary"):
                 if accept_custom_text():
-                    selected_affirmation = st.session_state.custom_affirmation
+                    selected_affirmation = StateManager.get('visual.custom_affirmation')
                     # Wyświetlenie wybranej afirmacji w karcie
                     centered_text("Wybrana afirmacja")
                     affirmation_card(selected_affirmation)
@@ -96,7 +130,7 @@ def display_visual_quote_section():
             _display_image_options(selected_affirmation)
     
     # Wskazówki użycia
-    if st.session_state.visual_quote_generated:
+    if StateManager.get('visual.quote_generated', False):
         _display_usage_tips()
 
 def _display_image_options(selected_affirmation):
@@ -251,7 +285,7 @@ def _handle_text_options():
             text_color, shadow_color = _handle_custom_text_color()
         else:
             text_color = TEXT_COLORS[text_color_option]
-            st.session_state['shadow_color_value'] = (0, 0, 0, 200)
+            StateManager.set('visual.shadow_color_value', (0, 0, 0, 200))
     
     with col_b:
         font_style_selection = st.selectbox(
@@ -259,6 +293,7 @@ def _handle_text_options():
             list(FONT_STYLES.keys()),
             key="font_style_selector"
         )
+        
     
     with col_c:
         text_position = st.selectbox(
@@ -296,7 +331,7 @@ def _handle_custom_text_color():
     else:
         shadow_color = custom_shadow_color_hex
     
-    st.session_state['shadow_color_value'] = shadow_color
+    StateManager.set('visual.shadow_color_value', shadow_color)
     
     return text_color, shadow_color
 
@@ -342,7 +377,7 @@ def _generate_visual_quote(selected_affirmation, background_type, gradient_color
     with st.spinner("Generuję obrazek..."):
         try:
             if background_type == "Gradient":
-                shadow_color = st.session_state.get('shadow_color_value', (0, 0, 0, 200))
+                shadow_color = StateManager.get('visual.shadow_color_value', (0, 0, 0, 200))
                 
                 if not isinstance(shadow_color, tuple) or len(shadow_color) != 4:
                     shadow_color = (0, 0, 0, 200)
@@ -368,7 +403,7 @@ def _generate_visual_quote(selected_affirmation, background_type, gradient_color
                     st.warning("Proszę wgrać obraz tła!")
                     return
                 
-                shadow_color = st.session_state.get('shadow_color_value', (0, 0, 0, 200))
+                shadow_color = StateManager.get('visual.shadow_color_value', (0, 0, 0, 200))
                 
                 if not isinstance(shadow_color, tuple) or len(shadow_color) != 4:
                     shadow_color = (0, 0, 0, 200)
@@ -399,7 +434,7 @@ def _display_result(image, image_width, image_height):
     """
     Wyświetla wygenerowany obraz i opcje pobierania
     """
-    st.session_state.visual_quote_generated = True
+    StateManager.set('visual.quote_generated', True)
     st.markdown("---")
 
     st.markdown("""

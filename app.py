@@ -5,7 +5,8 @@ import streamlit as st
 
 # Importy modułów
 from config.constants import DEFAULT_SESSION_STATE
-from config.utils import init_session_state, check_api_key
+from config.utils import check_api_key
+from utils.session_state import StateManager
 from modules.core.daily import display_daily_affirmation_section
 from modules.core.generator import display_generator_interface, generate_affirmation, display_affirmation_result
 from modules.core.welcome import welcome_screen, display_sidebar_with_provider
@@ -35,25 +36,25 @@ def main():
     )
     
     # Inicjalizacja stanu sesji
-    init_session_state()
+    StateManager.init_state()
     
     # Wstrzykiwanie CSS
     inject_custom_css()
     
     # Sprawdź czy użytkownik wybrał już providera i ma odpowiedni klucz
-    if 'selected_provider' not in st.session_state or not st.session_state.get('selected_provider'):
+    if not StateManager.has_key('app.selected_provider') or not StateManager.get('app.selected_provider'):
         welcome_screen()
         return
     
     # Sprawdź czy dla wybranego providera mamy klucz API
-    selected_provider = st.session_state.selected_provider
+    selected_provider = StateManager.get('app.selected_provider')
     if selected_provider == 'openai' and not check_api_key('openai'):
         welcome_screen()  # Wrócić do wyboru providera
         return
     elif selected_provider == 'groq' and not check_api_key('groq'):
         st.error("Brak klucza API dla Groq w konfiguracji.")
         if st.button("Wróć do wyboru"):
-            st.session_state.selected_provider = None
+            StateManager.set('app.selected_provider', None)
             st.rerun()
         return
     
@@ -62,7 +63,7 @@ def main():
     if not ai_service:
         st.error("Nie można zainicjalizować serwisu AI")
         if st.button("Wróć do wyboru"):
-            st.session_state.selected_provider = None
+            StateManager.set('app.selected_provider', None)
             st.rerun()
         return
     
