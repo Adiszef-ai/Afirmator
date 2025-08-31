@@ -1,10 +1,7 @@
 """
-app/modules/__init__.py - Inicjalizacja pakietu modules - zreorganizowany na katalogi tematyczne.
+app/modules/__init__.py - Inicjalizacja pakietu modules - uproszczona struktura.
 """
-# Core modules
-from .core import *
-
 # Audio modules  
 from .audio import *
 
-# Visual modules moved to core
+# Core modules are now directly in modules/

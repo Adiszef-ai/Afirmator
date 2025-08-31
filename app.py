@@ -7,11 +7,11 @@ import streamlit as st
 from config.constants import DEFAULT_SESSION_STATE
 from config.utils import check_api_key
 from utils.session_state import StateManager
-from modules.core.daily import display_daily_affirmation_section
-from modules.core.generator import display_generator_interface, generate_affirmation, display_affirmation_result
-from modules.core.welcome import welcome_screen, display_sidebar_with_provider
-from modules.core.visual_quote import display_visual_quote_section
-from modules.core.read_affirmation import display_read_affirmation_section
+from modules.daily import display_daily_affirmation_section
+from modules.generator import display_generator_interface, generate_affirmation, display_affirmation_result
+from modules.welcome import welcome_screen, display_sidebar_with_provider
+from modules.visual_quote import display_visual_quote_section
+from modules.read_affirmation import display_read_affirmation_section
 from modules.audio.musical_affirmation import display_musical_affirmation_section
 from services.ai_factory import AIServiceFactory
 from services.groq_service import GroqService

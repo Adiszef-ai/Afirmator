@@ -1,61 +1,113 @@
 # ✨ AFIRMATOR ✨
 
-Aplikacja do generowania spersonalizowanych afirmacji wspierających rozwój osobisty, wykorzystująca sztuczną inteligencję do tworzenia unikalnych i motywujących komunikatów.
+Zaawansowana aplikacja webowa do generowania spersonalizowanych afirmacji wykorzystująca sztuczną inteligencję. Aplikacja oferuje kompleksowe wsparcie rozwoju osobistego poprzez tworzenie, wizualizację i odtwarzanie afirmacji dostosowanych do indywidualnych potrzeb użytkownika.
 
-## 🚀 Funkcje
+## 🚀 Główne Funkcje
 
-- **Generator afirmacji** - tworzenie spersonalizowanych afirmacji dostosowanych do Twoich potrzeb, celów i emocji
-- **Afirmacja dnia** - codzienna, inspirująca afirmacja dostosowana do Twojej osoby
-- **Synteza mowy** - zamiana tekstu na mowę z wyborem różnych głosów i prędkości czytania
-- **Czytanie afirmacji** - zaawansowana kontrola nad sposobem narracji i odtwarzania
-- **Wizualny cytat** - tworzenie obrazów z afirmacjami w różnych formatach i rozmiarach
-- **Muzyczna afirmacja** - łączenie afirmacji z relaksującymi podkładami muzycznymi
-- **Historia afirmacji** - łatwy dostęp do wcześniej wygenerowanych afirmacji
-- **Statystyki** - śledzenie liczby wygenerowanych afirmacji i aktywności
+### 🌟 **Afirmacja Dnia**
+- Codzienna, inspirująca afirmacja dostosowana do Twojej osoby
+- Spersonalizowane komunikaty z wykorzystaniem imienia użytkownika
+- Różnorodne tematy: pozytywność, wdzięczność, siła wewnętrzna, produktywność i więcej
+- Synteza mowy z wyborem głosów i prędkości narracji (tylko OpenAI)
 
-## 📋 Wymagania
+### 🛠️ **Generator Afirmacji**
+- Tworzenie spersonalizowanych afirmacji na podstawie szczegółowego formularza
+- Wybór obszaru pracy: pewność siebie, motywacja, wyciszenie, relacje, zdrowie, bogactwo
+- Dostosowanie do aktualnego stanu emocjonalnego i preferowanego stylu
+- Opcje czasowe stosowania: rano, w ciągu dnia, wieczorem
+- Edycja wygenerowanych afirmacji z zachowaniem historii
 
-- Python 3.8+
-- Streamlit 1.32.0+
-- OpenAI API (do generowania tekstu i mowy)
-- Pillow (do obsługi obrazów)
-- Pydub i FFmpeg (do obsługi plików audio)
+### 🎨 **Wizualny Cytat**
+- Tworzenie pięknych obrazów z afirmacjami w różnych formatach
+- Predefiniowane rozmiary: Instagram, A4, A5, HD, Facebook Cover, Pinterest, Twitter Header
+- Zaawansowane opcje gradientów (pionowe, poziome, ukośne, promieniste)
+- System czcionek z obsługą polskich znaków diakrytycznych
+- Własne kolory tekstu i obramowania
+- Opcja wgrywania własnych tła i czcionek
+- Różne DPI dla różnych zastosowań (druk/web)
+
+### 🎧 **Czytanie Afirmacji**
+- Zaawansowana synteza mowy z 6 różnymi głosami (OpenAI)
+- Kontrola prędkości czytania i tonu narracji
+- Pobieranie plików audio w wysokiej jakości
+- Historia afirmacji z szybkim dostępem
+
+### 🎵 **Muzyczna Afirmacja**
+- Łączenie afirmacji z relaksującymi podkładami muzycznymi
+- 7 predefiniowanych dźwięków natury i muzyki ambient
+- Możliwość wgrania własnego podkładu muzycznego
+- Kontrola liczby powtórzeń i przerw między afirmacjami
+- Regulacja głośności podkładu muzycznego
+- Automatyczne miksowanie z efektami fade
+
+### 🤖 **Wsparcie Dwóch Providerów AI**
+- **OpenAI (Premium)**: Pełna funkcjonalność - tekst + audio + synteza mowy
+- **Groq (Darmowy)**: Szybkie generowanie tekstu (tylko funkcje tekstowe)
+- Automatyczne wykrywanie dostępnych providerów na podstawie kluczy API
+
+## 📋 Wymagania Techniczne
+
+- **Python 3.8+**
+- **Streamlit 1.45.0+**
+- **OpenAI API** (opcjonalnie - dla pełnej funkcjonalności)
+- **Groq API** (opcjonalnie - dla szybkiego generowania tekstu)
+- **FFmpeg** (wymagany do obsługi plików audio)
+- **Biblioteki**: Pillow, pydub, requests, python-dotenv, fonttools
 
 ## 🛠️ Instalacja
 
-1. Sklonuj repozytorium:
+### Podstawowa instalacja
 
+1. **Sklonuj repozytorium:**
    ```bash
-   git clone https://github.com/twoj-username/afirmator.git
-   cd afirmator
+   git clone https://github.com/Adiszef-ai/afirmator.git
+   cd afirmator/app
    ```
 
-2. Zainstaluj wymagane pakiety:
-
+2. **Zainstaluj wymagane pakiety:**
    ```bash
    pip install -r requirements.txt
    ```
 
-3. Zainstaluj FFmpeg (wymagany do obsługi plików audio):
-
-   - **Windows**: Pobierz z [ffmpeg.org](https://ffmpeg.org/download.html) lub użyj `winget install ffmpeg`
+3. **Zainstaluj FFmpeg (wymagany do obsługi plików audio):**
+   - **Windows**: `winget install ffmpeg` lub pobierz z [ffmpeg.org](https://ffmpeg.org/download.html)
    - **Mac**: `brew install ffmpeg`
    - **Linux**: `sudo apt install ffmpeg`
 
-4. Utwórz strukture katalogów dla plików dźwiękowych:
+### Konfiguracja folderów zasobów
 
-   ```
-   afirmator/
-   └── assets/
-       └── sounds/
-   ```
+Aplikacja automatycznie utworzy potrzebne foldery przy pierwszym uruchomieniu:
 
-5. Pobierz pliki dźwiękowe i umieść je w folderze `assets/sounds/`
+```
+app/
+└── assets/
+    ├── fonts/          # Czcionki do wizualnych cytatów
+    └── sounds/         # Pliki dźwiękowe do podkładów muzycznych
+```
 
-6. Uruchom aplikację:
-   ```bash
-   streamlit run app.py
-   ```
+**Uwaga**: Możesz dodać własne czcionki (.ttf, .otf) do folderu `assets/fonts/` oraz własne pliki audio (.mp3, .wav) do folderu `assets/sounds/`.
+
+### Konfiguracja kluczy API
+
+Utwórz plik `.streamlit/secrets.toml` w folderze aplikacji:
+
+```toml
+# Klucze API (wybierz jeden lub oba)
+OPENAI_API_KEY = "sk-twój-klucz-openai"       # Opcjonalnie - pełna funkcjonalność
+GROQ_API_KEY = "gsk_twój-klucz-groq"         # Opcjonalnie - tylko tekst, za darmo
+
+# Alternatywnie jako zmienne środowiskowe:
+# export OPENAI_API_KEY="sk-twój-klucz"
+# export GROQ_API_KEY="gsk_twój-klucz"
+```
+
+### Uruchomienie aplikacji
+
+```bash
+streamlit run app.py
+```
+
+Aplikacja będzie dostępna pod adresem: `http://localhost:8501`
 
 ## 🔤 System czcionek
 
@@ -98,147 +150,368 @@ Jeśli tekst nie jest prawidłowo wyświetlany na obrazkach:
 - Sprawdź, czy używane czcionki obsługują polskie znaki diakrytyczne
 - Jeśli czcionki są niedostępne, aplikacja wyświetli stosowne ostrzeżenie
 
-## 🌐 Wdrożenie na Streamlit Cloud
+## 🌐 Wdrożenie w Chmurze
 
-Aby wdrożyć aplikację na Streamlit Cloud, wykonaj następujące kroki:
+### Streamlit Cloud
 
-1. Umieść kod w repozytorium GitHub
-2. Zaloguj się na [Streamlit Cloud](https://streamlit.io/cloud)
-3. Kliknij "New app" i wybierz swoje repozytorium
+1. **Przygotowanie repozytorium:**
+   ```bash
+   git add .
+   git commit -m "Przygotowanie do wdrożenia"
+   git push origin main
+   ```
 
-### Konfiguracja klucza API
+2. **Konfiguracja na Streamlit Cloud:**
+   - Zaloguj się na [Streamlit Cloud](https://streamlit.io/cloud)
+   - Kliknij "New app" i wybierz repozytorium `afirmator`
+   - Ustaw ścieżkę aplikacji na: `app/app.py`
 
-Na Streamlit Cloud możesz ustawić klucz API OpenAI na dwa sposoby:
+3. **Konfiguracja sekretów:**
+   W Advanced settings > Secrets dodaj:
+   ```toml
+   OPENAI_API_KEY = "sk-twój-klucz-openai"
+   GROQ_API_KEY = "gsk_twój-klucz-groq"
+   ```
 
-1. **Za pomocą zmiennych środowiskowych** (zalecane):
+### Heroku
 
-   - W panelu aplikacji na Streamlit Cloud, przejdź do "Advanced settings" > "Secrets"
-   - Dodaj swój klucz API w formacie TOML:
-     ```toml
-     OPENAI_API_KEY = "sk-twój-klucz-api"
-     ```
+1. **Utwórz pliki konfiguracyjne:**
+   ```bash
+   # Procfile
+   web: sh setup.sh && streamlit run app/app.py --server.port=$PORT --server.address=0.0.0.0
+   
+   # setup.sh
+   mkdir -p ~/.streamlit/
+   echo "[server]" > ~/.streamlit/config.toml
+   echo "port = $PORT" >> ~/.streamlit/config.toml
+   ```
 
-2. **Ręcznie w aplikacji**:
-   - Uruchom aplikację i wprowadź klucz API w interfejsie użytkownika
-   - Uwaga: Ten sposób wymaga ponownego wprowadzenia klucza po każdym restarcie aplikacji
+2. **Wdróż aplikację:**
+   ```bash
+   heroku create twoja-aplikacja-afirmator
+   heroku config:set OPENAI_API_KEY="sk-twój-klucz"
+   heroku config:set GROQ_API_KEY="gsk-twój-klucz"
+   git push heroku main
+   ```
 
-### Rozwiązywanie problemów z wdrożeniem
+### Docker
 
-Jeśli występują problemy z kluczem API:
+```dockerfile
+FROM python:3.9-slim
 
-- Upewnij się, że klucz zaczyna się od "sk-" i ma prawidłowy format
-- Sprawdź, czy Twój klucz API ma wystarczające uprawnienia
-- Zweryfikuj, czy limit API nie został przekroczony
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
 
-Jeśli pojawiają się błędy związane z biblioteką OpenAI:
+# Zainstaluj FFmpeg
+RUN apt-get update && apt-get install -y ffmpeg
 
-- **UWAGA**: Aplikacja używa bezpośrednich zapytań HTTP do API OpenAI zamiast oficjalnej biblioteki, co rozwiązuje problem z argumentem 'proxies' na Streamlit Cloud
-- W przypadku błędów związanych z API OpenAI, sprawdź w logach dokładny komunikat błędu
-- Po zaktualizowaniu kodu, przebuduj aplikację na Streamlit Cloud (Manage app > Reboot app)
+COPY . .
+EXPOSE 8501
 
-Jeśli aplikacja nadal nie działa po wdrożeniu:
-
-1. Upewnij się, że zmiany zostały wysłane do repozytorium GitHub
-2. W Streamlit Cloud, wybierz "Manage app" > "Advanced settings" i sprawdź, czy wybrana jest właściwa gałąź repozytorium
-3. Spróbuj całkowicie usunąć aplikację i wdrożyć ją ponownie
-
-## 🔍 Struktura projektu
-
-```
-afirmator/
-├── app.py                 # Główny plik aplikacji
-├── config.toml            # Konfiguracja Streamlit
-├── requirements.txt       # Zależności
-├── README.md              # Dokumentacja aplikacji
-├── assets/
-│   ├── sounds/            # Pliki dźwiękowe do podkładów
-│   └── fonts/             # Folder z czcionkami dla wizualnych cytatów
-├── config/
-│   └── constants.py       # Stałe i konfiguracja
-├── modules/
-│   ├── __init__.py        # Inicjalizacja pakietu
-│   ├── daily.py           # Moduł afirmacji dnia
-│   ├── generator.py       # Moduł generatora afirmacji
-│   ├── audio.py           # Funkcje związane z audio
-│   ├── audio_player.py    # Zaawansowane czytanie afirmacji
-│   ├── musical_affirmation.py # Afirmacje z podkładem muzycznym
-│   ├── visual_quote.py    # Tworzenie obrazów z afirmacjami
-│   └── utils.py           # Funkcje pomocnicze
-├── services/
-│   ├── __init__.py        # Inicjalizacja pakietu
-│   └── openai_service.py  # Obsługa OpenAI API
-└── ui/
-    ├── __init__.py        # Inicjalizacja pakietu
-    ├── styles.py          # Style CSS
-    ├── components.py      # Komponenty interfejsu
-    └── sidebar.py         # Elementy panelu bocznego
+CMD ["streamlit", "run", "app.py", "--server.port=8501", "--server.address=0.0.0.0"]
 ```
 
-## 📱 Używanie aplikacji
+### Rozwiązywanie problemów
 
-1. Po uruchomieniu aplikacji, wprowadź swój klucz API OpenAI
-2. Wybierz jedną z pięciu zakładek:
-   - **🌟 Afirmacja dnia** - Otrzymaj codzienną dawkę pozytywnej energii
-   - **🛠️ Generator afirmacji** - Stwórz spersonalizowaną afirmację
-   - **🎨 Wizualny cytat** - Twórz obrazy z afirmacjami w różnych formatach
-   - **🎧 Czytanie afirmacji** - Kontroluj prędkość czytania afirmacji
-   - **🎵 Muzyczna afirmacja** - Połącz afirmacje z podkładem muzycznym
+- **Brak FFmpeg**: Upewnij się, że FFmpeg jest zainstalowany w środowisku docelowym
+- **Problemy z czcionkami**: Dodaj czcionki systemowe lub dodaj własne do folderu `assets/fonts/`
+- **Timeout API**: Zwiększ timeout w ustawieniach providera lub użyj mniejszych promptów
 
-### Afirmacja dnia
+## 🔍 Struktura Projektu
 
-- Wprowadź swoje imię
-- Otrzymaj codzienną afirmację dostosowaną do Twojej osoby
+```
+afirmator/app/
+├── app.py                          # 🚀 Główny plik aplikacji
+├── requirements.txt                # 📦 Zależności projektu  
+├── README.md                      # 📚 Dokumentacja
+│
+├── .streamlit/
+│   ├── config.toml                # ⚙️ Konfiguracja Streamlit
+│   └── secrets.toml               # 🔐 Klucze API (do utworzenia)
+│
+├── assets/                        # 📁 Zasoby aplikacji
+│   ├── fonts/                     # 🔤 Czcionki do wizualnych cytatów
+│   └── sounds/                    # 🎵 Pliki audio do podkładów
+│
+├── config/                        # ⚙️ Konfiguracja aplikacji
+│   ├── constants.py               # 📊 Stałe i opcje konfiguracyjne
+│   └── utils.py                   # 🛠️ Funkcje pomocnicze konfiguracji
+│
+├── utils/                         # 🔧 Narzędzia pomocnicze
+│   ├── __init__.py
+│   └── session_state.py           # 💾 Zarządzanie stanem sesji
+│
+├── services/                      # 🤖 Serwisy AI
+│   ├── __init__.py
+│   ├── ai_factory.py              # 🏭 Fabryka serwisów AI
+│   ├── openai_service.py          # 💎 Obsługa OpenAI API
+│   └── groq_service.py            # ⚡ Obsługa Groq API (darmowy)
+│
+├── modules/                       # 📚 Główne moduły funkcjonalne
+│   ├── __init__.py
+│   ├── daily.py                   # 🌟 Afirmacja dnia
+│   ├── generator.py               # 🛠️ Generator afirmacji  
+│   ├── read_affirmation.py        # 🎧 Czytanie afirmacji
+│   ├── visual_quote.py            # 🎨 Wizualne cytaty
+│   ├── welcome.py                 # 👋 Ekran powitalny
+│   ├── visual/                    # 🖼️ Komponenty wizualne
+│   │   ├── __init__.py
+│   │   ├── font_manager.py        # 🔤 Zarządzanie czcionkami
+│   │   ├── gradient_generator.py  # 🌈 Generowanie gradientów
+│   │   ├── text_renderer.py       # ✍️ Renderowanie tekstu
+│   │   └── image_composer.py      # 🖼️ Kompozycja obrazów
+│   └── audio/                     # 🎵 Moduły audio
+│       ├── __init__.py
+│       ├── audio_player.py        # 🎧 Odtwarzacz audio
+│       └── musical_affirmation.py # 🎼 Afirmacje z muzyką
+│
+├── components/                    # 🧩 Komponenty wielokrotnego użytku
+│   ├── __init__.py
+│   ├── affirmation_selector.py    # 📝 Selektor afirmacji
+│   └── audio_player.py            # 🎵 Komponenty audio
+│
+└── ui/                           # 🎨 Interfejs użytkownika
+    ├── __init__.py
+    ├── components.py              # 🧱 Komponenty UI
+    ├── styles.py                  # 💅 Style CSS
+    └── sidebar.py                 # 📱 Panel boczny
+```
 
-### Generator afirmacji
+### 📋 Opis Kluczowych Komponentów
 
-- Wypełnij formularz z Twoimi preferencjami
-- Dostosuj styl, ton i długość afirmacji
+- **app.py**: Główna aplikacja z routingiem między zakładkami i inicjalizacją
+- **services/**: Zarządzanie providerami AI (OpenAI + Groq) z cache'em i factory pattern
+- **modules/**: Uproszczona struktura - główne moduły funkcjonalne bezpośrednio w folderze
+  - Podstawowe funkcje: `daily.py`, `generator.py`, `visual_quote.py`, `welcome.py`, `read_affirmation.py`
+  - **modules/visual/**: Komponenty do generowania wizualnych cytatów
+  - **modules/audio/**: Specjalizowane funkcje audio i muzyczne
+- **components/**: Komponenty wielokrotnego użytku (selektory, odtwarzacze)
+- **ui/**: Style CSS, layout i elementy interfejsu użytkownika
+- **utils/**: Zarządzanie stanem sesji i funkcje pomocnicze
+- **config/**: Centralna konfiguracja opcji, stałych i narzędzia pomocnicze
 
-### Wizualny cytat
+## 📱 Przewodnik Użytkownika
 
-- Wybierz afirmację z historii lub wprowadź własną
-- Dostosuj tło, kolory, czcionkę i rozmiar obrazu
-- Wybierz spośród różnych stylów czcionek lub dodaj własne do folderu `assets/fonts/`
-- Korzystaj z własnych kolorów tekstu i obramowania dla większej personalizacji
-- Wybierz kierunek gradientu (pionowy, poziomy, ukośny, promienisty) dla tła
-- Pobierz gotowy obraz w formacie PNG
+### 🚀 Pierwsze Uruchomienie
 
-### Czytanie afirmacji
+1. **Wybór providera AI:**
+   - Przy pierwszym uruchomieniu wybierz dostępnego providera AI
+   - **OpenAI**: Pełna funkcjonalność (tekst + audio)
+   - **Groq**: Szybkie i darmowe (tylko tekst)
 
-- Wybierz afirmację do odtworzenia
-- Dostosuj prędkość i głos narracji
-- Odsłuchaj i pobierz spersonalizowane audio
+2. **Konfiguracja API:**
+   - Jeśli nie ma skonfigurowanych kluczy, wprowadź je w interfejsie
+   - Klucze są zapisywane bezpiecznie w sesji
 
-### Muzyczna afirmacja
+### 📚 Funkcje Poszczególnych Zakładek
 
-- Połącz afirmację z relaksującym podkładem muzycznym
-- Wybierz z predefiniowanych dźwięków natury lub wgraj własny
-- Ustaw liczbę powtórzeń i głośność podkładu
+#### 🌟 **Afirmacja Dnia**
+```
+✅ Wprowadź swoje imię
+✅ Otrzymaj spersonalizowaną afirmację dnia  
+✅ Odsłuchaj afirmację (tylko OpenAI)
+✅ Pobierz plik audio MP3
+```
 
-## 🌱 Zalecenia dotyczące stosowania afirmacji
+**Wskazówki:**
+- Używaj codziennie o tej samej porze dla najlepszego efektu
+- Afirmacja automatycznie uwzględnia Twoje imię
 
-- Powtarzaj afirmację co najmniej 3 razy dziennie
-- Wypowiadaj afirmacje na głos i z przekonaniem
-- Słuchaj nagrania podczas medytacji lub relaksu
-- Dla najlepszych rezultatów, stosuj przez minimum 21 dni
-- Używaj wizualnych cytatów jako elementów przypominających w Twoim otoczeniu
-- Ustaw muzyczne afirmacje jako podkład do medytacji
+#### 🛠️ **Generator Afirmacji**
+```
+📝 Wypełnij szczegółowy formularz:
+   • Imię użytkownika
+   • Obszar pracy (pewność siebie, motywacja, zdrowie...)
+   • Aktualny stan emocjonalny
+   • Preferowany styl i ton
+   • Długość i pora stosowania
+   
+✏️ Edytuj wygenerowaną afirmację
+💾 Wszystkie afirmacje trafiają do historii
+```
 
-## 🔮 Planowane zmiany i rozwój
+#### 🎨 **Wizualny Cytat**
+```
+🎯 Wybór źródła:
+   • Z historii afirmacji
+   • Własny tekst
+   
+🎨 Personalizacja:
+   • Gradienty (5 kierunków) lub własne tło
+   • 4 style czcionek + własne z folderu assets/fonts/
+   • Własne kolory tekstu i obramowania
+   • 9 predefiniowanych rozmiarów + własny
+   • 3 opcje DPI (druk/web)
+   
+📥 Pobierz jako PNG w wysokiej jakości
+```
 
-- **Wielojęzyczność** - dodanie obsługi języka angielskiego i możliwości generowania afirmacji w różnych językach
-- **AI-generowane tła** - wykorzystanie sztucznej inteligencji do tworzenia unikalnego tła dla wizualnych cytatów
-- **Restrukturyzacja kodu** - optymalizacja i poprawa organizacji kodu dla lepszej wydajności i łatwiejszego rozwoju
-- **Nowe funkcje** - ciągłe dodawanie nowych funkcjonalności i ulepszeń w oparciu o potrzeby użytkowników
+#### 🎧 **Czytanie Afirmacji** *(tylko OpenAI)*
+```
+🎵 6 różnych głosów AI
+⏱️ Kontrola prędkości narracji (0.25x - 4.0x)
+📱 Historia afirmacji z szybkim dostępem
+💾 Pobieranie plików MP3
+```
 
-## 📝 Licencja
+#### 🎼 **Muzyczna Afirmacja** *(tylko OpenAI)*
+```
+🎵 7 predefiniowanych podkładów:
+   • Szum morza, deszcz, las
+   • Medytacyjny ambient, fortepian
+   • Strumień, biały szum
+   
+📤 Opcja wgrania własnego podkładu (MP3/WAV)
+🔁 1-10 powtórzeń z regulowanymi przerwami
+🔊 Kontrola głośności podkładu (10-100%)
+✨ Automatyczne miksowanie z fade-out
+```
 
-Ten projekt jest dostępny na licencji MIT. Zobacz plik `LICENSE` dla szczegółów.
+### 💡 **Najlepsze Praktyki**
 
-## 🙏 Podziękowania
+**Dla afirmacji:**
+- Powtarzaj minimum 3 razy dziennie
+- Wypowiadaj na głos z przekonaniem  
+- Stosuj regularnie przez minimum 21 dni
 
-- OpenAI za API do generowania tekstu i mowy
-- Streamlit za framework do tworzenia aplikacji webowych
-- pixabay.com i uppbeat.io za darmowe pliki dźwiękowe
-- Google Fonts (https://fonts.google.com/) za darmowe pliki z czcionkami
-- Ikony od [Icons8](https://icons8.com/)
+**Dla wizualnych cytatów:**
+- Użyj jako tapeta telefonu/komputera
+- Wydrukuj i umieść w widocznym miejscu
+- Zmieniaj co tydzień dla świeżości
+
+**Dla audio:**
+- Słuchaj w słuchawkach dla lepszego efektu
+- Używaj podczas medytacji lub relaksu
+- Najlepiej przed snem lub rano
+
+## 🔧 Rozwiązywanie Problemów
+
+### ❌ **Typowe Błędy i Rozwiązania**
+
+**Problem z kluczem API:**
+```
+❌ "Nieprawidłowy klucz API"
+✅ Sprawdź format: OpenAI (sk-...), Groq (gsk_...)
+✅ Zweryfikuj uprawnienia w panelu providera
+✅ Sprawdź czy nie przekroczyłeś limitów API
+```
+
+**Brak dźwięku w funkcjach audio:**
+```
+❌ "Błąd generowania audio"
+✅ Sprawdź czy używasz OpenAI (Groq nie obsługuje audio)
+✅ Zweryfikuj czy FFmpeg jest zainstalowany
+✅ Sprawdź połączenie internetowe
+```
+
+**Problemy z czcionkami:**
+```
+❌ "Nie można wyrenderować tekstu"  
+✅ Dodaj czcionki .ttf do folderu assets/fonts/
+✅ Sprawdź czy czcionki obsługują polskie znaki
+✅ Zrestartuj aplikację po dodaniu czcionek
+```
+
+**Wolne ładowanie:**
+```
+❌ Długie czas odpowiedzi
+✅ Użyj Groq dla szybszego generowania tekstu
+✅ Skróć prompty i afirmacje
+✅ Sprawdź połączenie internetowe
+```
+
+### 🔧 **Resetowanie Aplikacji**
+
+W razie problemów z sesją:
+1. Odśwież przeglądarkę (F5)
+2. Wyczyść cache przeglądarki
+3. Zrestartuj aplikację Streamlit
+
+## 🆕 **Historia Wersji**
+
+### **v1.2.2** *(aktualna)*
+- ✅ Dodano obsługę Groq jako alternatywy dla OpenAI
+- ✅ Refaktoryzacja struktury projektu na moduły
+- ✅ **Uproszczenie architektury** - usunięto folder `core`, główne moduły bezpośrednio w `modules/`
+- ✅ Usprawnienia interfejsu użytkownika
+- ✅ Nowy system zarządzania stanem sesji
+- ✅ Optymalizacje cache'owania dla lepszej wydajności
+
+### **v1.2.0**
+- ✅ Integracja z Groq AI (darmowy provider)
+- ✅ Fabryka serwisów AI z automatycznym wykrywaniem
+- ✅ Usprawnienia w generowaniu afirmacji
+
+### **v1.1**
+- ✅ Pełny system wizualnych cytatów
+- ✅ Muzyczne afirmacje z miksowaniem audio
+- ✅ Zaawansowane opcje czcionek i gradientów
+- ✅ Historia afirmacji z edycją
+
+## 🚀 **Planowane Funkcje**
+
+### 🌍 **Wersja 1.3.0**
+- [ ] **Wielojęzyczność** - wsparcie dla języka angielskiego
+- [ ] **AI-generowane tła** - DALL-E integration dla wizualnych cytatów
+- [ ] **Eksport do PDF** - tworzenie bookletów z afirmacjami
+- [ ] **Statystyki użytkowania** - tracking postępów
+
+### 🔮 **Długoterminowe Plany**
+- [ ] **Aplikacja mobilna** (React Native)
+- [ ] **System motywacyjny** - streaki i osiągnięcia
+- [ ] **Społeczność** - udostępnianie afirmacji
+- [ ] **API publiczne** - dla developerów
+
+## 🤝 **Wkład w Projekt**
+
+Projekt jest otwarty na contribucje! 
+
+### **Jak pomóc:**
+1. 🐛 **Zgłoś błędy** - użyj GitHub Issues
+2. 💡 **Zaproponuj funkcje** - opisz swój pomysł
+3. 🔧 **Prześlij kod** - stwórz Pull Request
+4. 📚 **Popraw dokumentację** - każda pomoc mile widziana
+5. 🌍 **Tłumaczenia** - pomóż w wielojęzyczności
+
+### **Środowisko deweloperskie:**
+```bash
+git clone https://github.com/Adiszef-ai/afirmator.git
+cd afirmator/app
+pip install -r requirements.txt
+streamlit run app.py
+```
+
+## 📄 **Licencja**
+
+Projekt dostępny na **licencji MIT** - zobacz [LICENSE](LICENSE) dla szczegółów.
+
+**Co to oznacza:**
+- ✅ Darmowe użytkowanie (osobiste i komercyjne)
+- ✅ Modyfikowanie i rozpowszechnianie
+- ✅ Włączanie do własnych projektów
+- ⚠️ Bez gwarancji - używasz na własne ryzyko
+
+## 🙏 **Podziękowania**
+
+**Technologie:**
+- 🤖 [OpenAI](https://openai.com) - GPT i TTS API
+- ⚡ [Groq](https://groq.com) - szybki darmowy AI
+- 🚀 [Streamlit](https://streamlit.io) - framework aplikacji webowej
+- 🖼️ [Pillow](https://python-pillow.org) - przetwarzanie obrazów
+- 🎵 [pydub](https://pydub.com) - manipulacja audio
+
+**Zasoby:**
+- 🎨 [Google Fonts](https://fonts.google.com) - darmowe czcionki
+- 🎵 [Pixabay](https://pixabay.com) - dźwięki natury
+- 🎼 [Uppbeat](https://uppbeat.io) - muzyka ambient
+- 🎯 [Icons8](https://icons8.com) - ikony i grafiki
+
+**Społeczność:**
+- 💬 Użytkownicy za feedback i sugestie
+- 🔧 Contributo za poprawki i ulepszenia
+- 📚 Stack Overflow za pomoc techniczną
+
+---
+
+**Afirmator v1.2.2** | 💎 Stworzone z pasją przez [Adrian](https://github.com/Adiszef-ai) | © 2025
