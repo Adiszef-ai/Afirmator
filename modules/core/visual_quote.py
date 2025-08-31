@@ -10,8 +10,8 @@ from config.constants import (
     IMAGE_SIZES, GRADIENT_PRESETS, FONT_STYLES, 
     TEXT_COLORS, DPI_OPTIONS
 )
-from .font_manager import setup_fonts
-from .image_composer import create_visual_quote, get_size_in_cm
+from .visual.font_manager import setup_fonts
+from .visual.image_composer import create_visual_quote, get_size_in_cm
 
 # Inicjalizacja czcionek
 setup_fonts()

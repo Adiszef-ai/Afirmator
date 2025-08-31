@@ -7,5 +7,4 @@ from .core import *
 # Audio modules  
 from .audio import *
 
-# Visual modules
-from .visual import *
+# Visual modules moved to core
