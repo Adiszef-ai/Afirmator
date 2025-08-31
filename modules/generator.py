@@ -1,5 +1,5 @@
 """
-Moduł obsługujący funkcjonalność generatora afirmacji.
+app/modules/generator.py - Moduł obsługujący funkcjonalność generatora afirmacji.
 """
 import streamlit as st
 from config.constants import (

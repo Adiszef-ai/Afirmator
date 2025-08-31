@@ -1,5 +1,5 @@
 """
-Moduł obsługujący dedykowaną zakładkę do czytania afirmacji.
+app/modules/audio_player.py - Moduł obsługujący dedykowaną zakładkę do czytania afirmacji.
 """
 import streamlit as st
 import base64

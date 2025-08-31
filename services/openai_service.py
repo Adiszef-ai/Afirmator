@@ -1,5 +1,5 @@
 """
-Usługi związane z OpenAI API.
+app/services/openai_service.py - Usługi związane z OpenAI API.
 """
 import streamlit as st
 from openai import OpenAI

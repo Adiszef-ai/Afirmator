@@ -1,5 +1,5 @@
 """
-Style CSS dla aplikacji Afirmator - wersja z naprawionymi gradientami.
+app/ui/styles.py - Style CSS dla aplikacji Afirmator - wersja z naprawionymi gradientami.
 """
 import streamlit as st
 

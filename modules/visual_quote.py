@@ -1,5 +1,5 @@
 """
-Moduł obsługujący generowanie wizualnych cytatów z afirmacjami.
+app/modules/visual_quote.py - Moduł obsługujący generowanie wizualnych cytatów z afirmacjami.
 """
 import streamlit as st
 from PIL import Image, ImageDraw, ImageFont

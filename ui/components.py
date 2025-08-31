@@ -1,5 +1,5 @@
 """
-Współdzielone komponenty interfejsu użytkownika - wersja ulepszona.
+app/ui/components.py - Współdzielone komponenty interfejsu użytkownika - wersja ulepszona.
 """
 import streamlit as st
 

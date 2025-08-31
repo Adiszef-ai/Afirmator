@@ -1,5 +1,5 @@
 """
-Funkcje związane z obsługą audio - wersja ulepszona.
+app/modules/audio.py - Moduł obsługujący dedykowaną zakładkę do czytania afirmacji.
 """
 import base64
 import streamlit as st

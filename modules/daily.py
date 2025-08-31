@@ -1,5 +1,5 @@
 """
-Moduł obsługujący funkcjonalność afirmacji dnia - wersja ulepszona.
+app/modules/daily.py - Moduł obsługujący funkcjonalność afirmacji dnia - wersja ulepszona.
 """
 import random
 import streamlit as st

@@ -1,5 +1,5 @@
 """
-Komponenty interfejsu dla panelu bocznego - wersja ulepszona.
+app/ui/sidebar.py - Komponenty interfejsu dla panelu bocznego - wersja ulepszona.
 """
 import streamlit as st
 from ui.components import button_with_icon

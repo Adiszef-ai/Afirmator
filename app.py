@@ -1,5 +1,5 @@
 """
-Aplikacja Afirmator - generator spersonalizowanych afirmacji - wersja ulepszona.
+app/app.py - Aplikacja Afirmator - generator spersonalizowanych afirmacji
 """
 import streamlit as st
 

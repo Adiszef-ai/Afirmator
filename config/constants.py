@@ -1,5 +1,5 @@
 """
-Stałe i konfiguracja dla aplikacji Afirmator.
+app/config/constants.py - Stałe i konfiguracja dla aplikacji Afirmator.
 """
 
 # Opcje głosów dla TTS

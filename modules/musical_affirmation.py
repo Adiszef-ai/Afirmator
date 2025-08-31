@@ -1,5 +1,5 @@
 """
-Moduł obsługujący funkcję Muzycznej Afirmacji - łączenie afirmacji z podkładem muzycznym.
+app/modules/musical_affirmation.py - Moduł obsługujący funkcję Muzycznej Afirmacji - łączenie afirmacji z podkładem muzycznym.
 """
 import streamlit as st
 import base64

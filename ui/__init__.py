@@ -1,3 +1,3 @@
 """
-Inicjalizacja pakietu ui.
+app/ui/__init__.py - Inicjalizacja pakietu ui.
 """

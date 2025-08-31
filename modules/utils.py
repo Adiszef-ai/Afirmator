@@ -1,5 +1,5 @@
 """
-Funkcje pomocnicze używane w różnych modułach aplikacji - wersja ulepszona.
+app/modules/utils.py - Funkcje pomocnicze używane w różnych modułach aplikacji - wersja ulepszona.
 """
 import streamlit as st
 import base64
