@@ -26,7 +26,7 @@ def create_tabs():
 
 def api_key_input():
     """
-    Wyświetla pole do wprowadzania klucza API w ładnej karcie.
+    Wyświetla pole do wprowadzania klucza API z przyciskiem Submit.
     
     Returns:
         str: Wprowadzony klucz API lub None.
@@ -39,19 +39,24 @@ def api_key_input():
     
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        api_key = st.text_input(
-            "Klucz API",  # Dodaj etykietę
-            type="password",
-            key="api_input",
-            placeholder="sk-...",
-            label_visibility="hidden"  # Ukryj ją, jeśli nie chcesz by była widoczna
-        )
-        
-        # Dodaj informację pomocniczą
-        st.caption("Klucz API powinien zaczynać się od 'sk-' i zawierać minimum 40 znaków.")
-        st.caption("Możesz uzyskać klucz API na stronie [platform.openai.com](https://platform.openai.com/account/api-keys)")
-        
-        return api_key
+        with st.form("api_key_form"):
+            api_key = st.text_input(
+                "Klucz API",
+                type="password",
+                placeholder="sk-...",
+                label_visibility="hidden"
+            )
+            
+            # Dodaj informację pomocniczą
+            st.caption("Klucz API powinien zaczynać się od 'sk-' i zawierać minimum 40 znaków.")
+            st.caption("Możesz uzyskać klucz API na stronie [platform.openai.com](https://platform.openai.com/account/api-keys)")
+            
+            submit_button = st.form_submit_button("Zatwierdź klucz", use_container_width=True, type="primary")
+            
+            if submit_button and api_key:
+                return api_key
+            
+        return None
 
 def loading_spinner(message="Trwa przetwarzanie..."):
     """

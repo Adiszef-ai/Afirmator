@@ -4,16 +4,16 @@ app/modules/daily.py - Moduł obsługujący funkcjonalność afirmacji dnia - we
 import random
 import streamlit as st
 from config.constants import DAILY_AFFIRMATION_TOPICS
-from services.openai_service import OpenAIService
+# AI services będą przekazywane jako parametr
 from ui.components import affirmation_card, spacer
-from modules.utils import save_to_history
+from config.utils import save_to_history
 
-def generate_daily_affirmation(client, user_name):
+def generate_daily_affirmation(ai_service, user_name):
     """
     Generuje afirmację dnia dla użytkownika.
     
     Args:
-        client (OpenAIService): Instancja klienta OpenAI.
+        ai_service: Instancja serwisu AI (OpenAI lub Groq).
         user_name (str): Imię użytkownika.
         
     Returns:
@@ -25,24 +25,33 @@ def generate_daily_affirmation(client, user_name):
     # Losowy wybór tematu afirmacji dnia
     daily_topic = random.choice(DAILY_AFFIRMATION_TOPICS)
     
-    # Tworzenie promptu dla afirmacji dnia
-    prompt = f"""
-    Stwórz krótką, inspirującą afirmację dnia dla {user_name} w języku polskim, która:
-    1. Będzie skupiona na temacie: {daily_topic}
-    2. Zaczyna się od "Ja, {user_name},"
-    3. Jest zwięzła (maksymalnie 2-3 zdania)
-    4. Ma pozytywny, podnoszący na duchu ton
-    5. Używa czasu teraźniejszego
-    6. Jest sformułowana w pierwszej osobie
-    7. Zawiera element, który można zastosować w codziennym życiu
-    """
-    
     try:
-        return client.generate_affirmation(prompt, max_tokens=120)
+        # Sprawdź typ serwisu i wywołaj odpowiednią metodę
+        if hasattr(ai_service, 'generate_daily_affirmation'):
+            # Dla GroqService
+            return ai_service.generate_daily_affirmation(user_name, [daily_topic])
+        elif hasattr(ai_service, 'generate_affirmation'):
+            # Dla OpenAIService
+            prompt = f"""
+            Stwórz krótką, inspirującą afirmację dnia dla {user_name} w języku polskim, która:
+            1. Będzie skupiona na temacie: {daily_topic}
+            2. Zaczyna się od "Ja, {user_name},"
+            3. Jest zwięzła (maksymalnie 2-3 zdania)
+            4. Ma pozytywny, podnoszący na duchu ton
+            5. Używa czasu teraźniejszego
+            6. Jest sformułowana w pierwszej osobie
+            7. Zawiera element, który można zastosować w codziennym życiu
+            """
+            return ai_service.generate_affirmation(prompt, max_tokens=120)
+        else:
+            # Fallback dla uniwersalnych serwisów
+            prompt = f"Stwórz pozytywną afirmację dnia dla {user_name} na temat: {daily_topic}. Afirmacja powinna zaczynać się od 'Ja, {user_name},' i być w języku polskim."
+            return ai_service.generate_text(prompt, max_tokens=120)
+            
     except Exception as e:
         return f"Błąd podczas generowania afirmacji dnia: {str(e)}"
 
-def display_daily_affirmation_section(openai_service):
+def display_daily_affirmation_section(ai_service):
     """
     Wyświetla sekcję afirmacji dnia z ulepszonym UI.
     
@@ -66,9 +75,9 @@ def display_daily_affirmation_section(openai_service):
     
     # Sprawdzamy czy afirmacja już istnieje w session_state
     if 'daily_affirmation' not in st.session_state or st.session_state.daily_affirmation is None:
-        _display_daily_affirmation_input(openai_service)
+        _display_daily_affirmation_input(ai_service)
     else:
-        _display_daily_affirmation_content(openai_service)
+        _display_daily_affirmation_content(ai_service)
         
         # Wskazówki dotyczące używania afirmacji dnia - tylko gdy afirmacja jest wygenerowana
         st.markdown("---")
@@ -85,7 +94,7 @@ def display_daily_affirmation_section(openai_service):
             </div>
         """, unsafe_allow_html=True)
 
-def _display_daily_affirmation_input(openai_service):
+def _display_daily_affirmation_input(ai_service):
     """
     Wyświetla formularz wprowadzania imienia dla afirmacji dnia.
     
@@ -106,7 +115,7 @@ def _display_daily_affirmation_input(openai_service):
         if st.button("Pokaż afirmację dnia", key="show_daily_affirmation", use_container_width=True):
             if name_input:
                 with st.spinner("🌟 Tworzę Twoją afirmację dnia..."):
-                    daily_affirmation = generate_daily_affirmation(openai_service, name_input)
+                    daily_affirmation = generate_daily_affirmation(ai_service, name_input)
                     st.session_state.daily_affirmation_name = name_input
                     st.session_state.daily_affirmation = daily_affirmation
                     st.session_state.edited_affirmation = daily_affirmation
@@ -116,7 +125,7 @@ def _display_daily_affirmation_input(openai_service):
             else:
                 st.warning("Proszę wprowadzić swoje imię!")
 
-def _display_daily_affirmation_content(openai_service):
+def _display_daily_affirmation_content(ai_service):
     """
     Wyświetla wygenerowaną afirmację dnia i opcje audio.
     
@@ -155,7 +164,7 @@ def _display_daily_affirmation_content(openai_service):
             with col_b:
                 if st.button("Nowa afirmacja", key="new_daily_affirmation", use_container_width=True):
                     with st.spinner("🌟 Generuję nową afirmację dnia..."):
-                        daily_affirmation = generate_daily_affirmation(openai_service, st.session_state.daily_affirmation_name)
+                        daily_affirmation = generate_daily_affirmation(ai_service, st.session_state.daily_affirmation_name)
                         st.session_state.daily_affirmation = daily_affirmation
                         st.session_state.edited_affirmation = daily_affirmation
                         # Zapisywanie nowej afirmacji dnia do historii

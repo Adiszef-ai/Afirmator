@@ -4,5 +4,8 @@ __pycache__/
 # Environments
 .env
 
+# Streamlit secrets
+.streamlit/secrets.toml
+
 # Distribution / packaging
 *.zip

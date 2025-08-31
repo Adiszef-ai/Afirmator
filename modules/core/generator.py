@@ -11,7 +11,7 @@ from config.constants import (
     AFFIRMATION_TONES, 
 )
 from services.openai_service import OpenAIService
-from modules.utils import save_to_history
+from config.utils import save_to_history
 from ui.components import spacer
 
 def display_generator_interface():
@@ -70,13 +70,13 @@ def display_generator_interface():
         
         return None
 
-def generate_affirmation(form_data, openai_service):
+def generate_affirmation(form_data, ai_service):
     """
     Generuje afirmację na podstawie danych z formularza.
     
     Args:
         form_data (dict): Dane z formularza.
-        openai_service (OpenAIService): Instancja serwisu OpenAI.
+        ai_service: Instancja serwisu AI (OpenAI lub Groq).
         
     Returns:
         str: Wygenerowana afirmacja lub None w przypadku błędu.
@@ -99,7 +99,24 @@ def generate_affirmation(form_data, openai_service):
     
     try:
         with st.spinner("🧠 AI tworzy Twoją unikalną afirmację..."):
-            affirmation = openai_service.generate_affirmation(prompt)
+            # Sprawdź typ serwisu i wywołaj odpowiednią metodę
+            if hasattr(ai_service, 'generate_affirmation') and callable(getattr(ai_service, 'generate_affirmation')):
+                # Dla GroqService z dodatkowymi parametrami
+                if hasattr(ai_service, 'model') and 'llama' in str(ai_service.model):
+                    affirmation = ai_service.generate_affirmation(
+                        categories=[form_data["focus_area"]],
+                        tone=form_data["affirmation_tone"],
+                        timing=form_data["affirmation_timing"],
+                        context=form_data.get("specific_goal", ""),
+                        user_name=form_data["user_name"],
+                        length=form_data["affirmation_length"]
+                    )
+                else:
+                    # Dla OpenAIService
+                    affirmation = ai_service.generate_affirmation(prompt)
+            else:
+                # Fallback dla uniwersalnych serwisów
+                affirmation = ai_service.generate_text(prompt)
             st.session_state.update({
                 'affirmation': affirmation,
                 'edited_affirmation': affirmation,
@@ -112,12 +129,13 @@ def generate_affirmation(form_data, openai_service):
         st.error(f"Błąd podczas generowania afirmacji: {str(e)}")
         return None
 
-def display_affirmation_result(openai_service):
+def display_affirmation_result(ai_service, provider_name="openai"):
     """
     Wyświetla wynik wygenerowanej afirmacji i opcje edycji.
     
     Args:
-        openai_service (OpenAIService): Instancja serwisu OpenAI.
+        ai_service: Instancja serwisu AI.
+        provider_name (str): Nazwa providera AI.
     """
     if not st.session_state.affirmation:
         return

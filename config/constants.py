@@ -128,9 +128,10 @@ DEFAULT_SESSION_STATE = {
     'daily_affirmation': None,
     'daily_affirmation_name': "",
     'show_daily_affirmation_input': True,
-    'show_daily_affirmation': False,
     'daily_audio_data': None,
     'player_audio_data': None,
     'music_affirmation_audio': None,
-    'current_tab': "daily"  # Domyślnie pokazujemy zakładkę "Afirmacja dnia"
+    'current_tab': "daily",  # Domyślnie pokazujemy zakładkę "Afirmacja dnia"
+    'selected_provider': None,  # Wybór providera AI
+    'show_openai_form': False  # Czy pokazać formularz OpenAI
 }

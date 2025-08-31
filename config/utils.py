@@ -1,0 +1,139 @@
+"""
+app/modules/utils.py - Funkcje pomocnicze używane w różnych modułach aplikacji - wersja ulepszona.
+"""
+import streamlit as st
+import base64
+import os
+import re
+from config.constants import DEFAULT_SESSION_STATE
+from ui.components import warning_message, api_key_input
+
+def init_session_state():
+    """
+    Inicjalizuje stan sesji z domyślnymi wartościami.
+    """
+    for key, value in DEFAULT_SESSION_STATE.items():
+        if key not in st.session_state:
+            st.session_state[key] = value
+
+def get_text_download_link(text, filename="afirmacja.txt"):
+    """
+    Tworzy link do pobrania tekstu jako plik.
+    
+    Args:
+        text (str): Tekst do pobrania.
+        filename (str, optional): Nazwa pliku. Domyślnie "afirmacja.txt".
+        
+    Returns:
+        str: HTML z linkiem do pobrania.
+    """
+    b64 = base64.b64encode(text.encode()).decode()
+    return f"""
+        <a href="data:file/txt;base64,{b64}" 
+           download="{filename}" 
+           class="download-button" 
+           style="text-decoration: none;">
+            💾 Pobierz TXT
+        </a>
+    """
+
+def save_to_history(affirmation):
+    """
+    Zapisuje afirmację do historii, jeśli jeszcze nie istnieje.
+    
+    Args:
+        affirmation (str): Afirmacja do zapisania.
+    """
+    if affirmation and affirmation not in st.session_state.history:
+        # Dodajemy nową afirmację na początek listy
+        st.session_state.history.insert(0, affirmation)
+        # Utrzymujemy maksymalnie 50 afirmacji w historii
+        if len(st.session_state.history) > 50:
+            st.session_state.history.pop()
+
+def get_api_key(provider="openai"):
+    """
+    Pobiera klucz API z różnych źródeł z fallback.
+    Kolejność: st.secrets -> environment variables -> user input
+    
+    Args:
+        provider (str): Nazwa providera ("openai" lub "groq")
+        
+    Returns:
+        str or None: Klucz API lub None jeśli nie znaleziono
+    """
+    # 1. Próba pobrania z st.secrets
+    try:
+        if hasattr(st, 'secrets') and provider in st.secrets:
+            api_key = st.secrets[provider].get("api_key")
+            if api_key and api_key != f"your-{provider}-api-key-here":
+                return api_key
+    except Exception:
+        pass
+    
+    # 2. Próba pobrania ze zmiennych środowiskowych
+    env_key_map = {
+        "openai": "OPENAI_API_KEY",
+        "groq": "GROQ_API_KEY"
+    }
+    
+    if provider in env_key_map:
+        env_key = os.getenv(env_key_map[provider])
+        if env_key:
+            return env_key
+    
+    # 3. Fallback do session_state (user input)
+    if hasattr(st.session_state, 'api_key') and st.session_state.api_key:
+        return st.session_state.api_key
+        
+    return None
+
+def validate_api_key(api_key, provider="openai"):
+    """
+    Waliduje format klucza API.
+    
+    Args:
+        api_key (str): Klucz API do walidacji
+        provider (str): Provider ("openai" lub "groq")
+        
+    Returns:
+        bool: True jeśli klucz jest prawidłowy
+    """
+    if not api_key:
+        return False
+        
+    # Wzorce dla różnych providerów
+    patterns = {
+        "openai": r"^sk-[a-zA-Z0-9_-]{40,200}$",  # Współczesne klucze OpenAI mogą być bardzo długie
+        "groq": r"^gsk_[a-zA-Z0-9]{40,}$"  # Także Groq może mieć różne długości
+    }
+    
+    if provider in patterns:
+        return bool(re.match(patterns[provider], api_key))
+    
+    # Fallback dla nieznanych providerów
+    return len(api_key) >= 20
+
+def check_api_key(provider="openai"):
+    """
+    Sprawdza czy klucz API jest dostępny i ma prawidłowy format.
+    
+    Args:
+        provider (str): Provider ("openai" lub "groq")
+        
+    Returns:
+        str or None: Klucz API jeśli jest prawidłowy, None w przeciwnym razie.
+    """
+    api_key = get_api_key(provider)
+    
+    if not api_key:
+        return None
+    
+    if not validate_api_key(api_key, provider):
+        if provider == "openai":
+            st.warning("⚠️ Nieprawidłowy format klucza OpenAI. Powinien zaczynać się od 'sk-'.")
+        elif provider == "groq":
+            st.warning("⚠️ Nieprawidłowy format klucza Groq. Powinien zaczynać się od 'gsk_'.")
+        return None
+        
+    return api_key
